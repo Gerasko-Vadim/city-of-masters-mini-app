@@ -109,7 +109,7 @@ function App() {
         totalAmount: 500,
         lat: position[0],
         lng: position[1],
-        clientId: user?.id
+        telegramId: user?.id ? String(user.id) : undefined
       });
       setOrderCreated(true);
     } catch (err) {
