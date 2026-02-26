@@ -40,7 +40,10 @@ interface Order {
 function ChangeView({ center }: { center: [number, number] }) {
   const map = useMapEvents({});
   useEffect(() => {
-    map.setView(center, map.getZoom());
+    map.flyTo(center, 15, {
+      animate: true,
+      duration: 1.5
+    });
   }, [center, map]);
   return null;
 }
@@ -100,6 +103,7 @@ function App() {
   const [orderCreated, setOrderCreated] = useState(false);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [isBouncing, setIsBouncing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -195,6 +199,31 @@ function App() {
       console.warn('Telegram SDK not available');
     }
   }, []);
+
+  const handleSearch = async () => {
+    if (!searchQuery) return;
+    try {
+      const res = await axios.get(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&viewbox=74.3,42.7,74.9,43.0&bounded=0&limit=1&accept-language=ru`,
+        { headers: { 'User-Agent': 'CityOfMasters-MiniApp/1.0' } }
+      );
+      if (res.data && res.data[0]) {
+        const { lat, lon, display_name } = res.data[0];
+        const newPos: [number, number] = [parseFloat(lat), parseFloat(lon)];
+        setPosition(newPos);
+        setAddress(display_name.split(', ').slice(0, 3).join(', '));
+        
+        // Trigger bounce for feedback
+        setIsBouncing(true);
+        setTimeout(() => setIsBouncing(false), 400);
+      } else {
+        WebApp.showAlert('Адрес не найден. Попробуйте уточнить поиск.');
+      }
+    } catch (err) {
+      console.error('Search failed', err);
+      WebApp.showAlert('Ошибка при поиске адреса.');
+    }
+  };
 
   const handleBack = () => {
     if (step === 1) {
@@ -327,31 +356,26 @@ function App() {
         
         {/* Floating Search */}
         <div style={{ position: 'absolute', top: '12px', left: '12px', right: '12px', zIndex: 1000, display: 'flex', gap: '8px' }}>
-          <input 
-            className="premium-input" 
-            style={{ flex: 1, height: '44px', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-color)' }}
-            placeholder="Поиск адреса..."
-            onKeyDown={async (e) => {
-              if (e.key === 'Enter') {
-                const query = e.currentTarget.value;
-                if (!query) return;
-                try {
-                  const res = await axios.get(
-                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&viewbox=74.3,42.7,74.9,43.0&bounded=1&limit=1&accept-language=ru`,
-                    { headers: { 'User-Agent': 'CityOfMasters-MiniApp/1.0' } }
-                  );
-                  if (res.data && res.data[0]) {
-                    const { lat, lon, display_name } = res.data[0];
-                    const newPos: [number, number] = [parseFloat(lat), parseFloat(lon)];
-                    setPosition(newPos);
-                    setAddress(display_name.split(', ').slice(0, 3).join(', '));
-                  }
-                } catch (err) {
-                  console.error('Search failed', err);
+          <div style={{ position: 'relative', flex: 1 }}>
+            <input 
+              className="premium-input" 
+              style={{ width: '100%', height: '44px', paddingRight: '44px', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-color)' }}
+              placeholder="Поиск адреса..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch();
                 }
-              }
-            }}
-          />
+              }}
+            />
+            <button 
+              onClick={handleSearch}
+              style={{ position: 'absolute', right: '4px', top: '4px', bottom: '4px', width: '36px', background: 'var(--primary-color)', border: 'none', borderRadius: '8px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            >
+              <Search size={18} />
+            </button>
+          </div>
         </div>
 
         <div className={`yandex-marker ${isBouncing ? 'bouncing' : ''}`}>
