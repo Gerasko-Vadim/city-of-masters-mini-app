@@ -600,18 +600,51 @@ function App() {
 
   if (orderCreated) {
     return (
-      <div className="step-container" style={{ textAlign: 'center', paddingTop: '60px' }}>
-        <CheckCircle size={80} color="var(--success-color)" style={{ marginBottom: '24px' }} />
-        <div className="title">Заявка создана!</div>
-        <p className="subtitle">
+      <div className="step-container" style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '40px' }}>
+        <div style={{ 
+          width: '100px', 
+          height: '100px', 
+          background: 'rgba(76, 175, 80, 0.1)', 
+          borderRadius: '50%', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          margin: '0 auto 24px' 
+        }}>
+          <CheckCircle size={60} color="var(--success-color)" />
+        </div>
+        <div className="title" style={{ fontSize: '24px', marginBottom: '12px' }}>Заявка создана!</div>
+        <p className="subtitle" style={{ fontSize: '15px', lineHeight: '1.6', marginBottom: '32px', color: 'var(--secondary-text)' }}>
           Ваша заявка ожидает подтверждения оплаты. <br/>
-          Отправьте скриншот оплаты в чат бота, и мы сразу начнем поиск мастера.
+          <strong>Отправьте скриншот оплаты</strong> в чат бота, и мы сразу начнем поиск мастера.
         </p>
-        <button className="btn-secondary" onClick={() => WebApp.openTelegramLink('https://t.me/city_of_masters_client_bot')} style={{ marginTop: '12px', marginBottom: '12px' }}>
-          <MessageCircle size={18} style={{ marginRight: '8px' }} />
-          Перейти в чат бота
-        </button>
-        <button className="btn-main" onClick={() => WebApp.close()}>Закрыть</button>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <button 
+            className="btn-main" 
+            onClick={() => WebApp.openTelegramLink('https://t.me/city_of_masters_client_bot')}
+            style={{ 
+              height: '54px', 
+              fontSize: '16px', 
+              boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px'
+            }}
+          >
+            <MessageCircle size={22} />
+            Перейти в чат бота
+          </button>
+          
+          <button 
+            className="btn-secondary" 
+            onClick={() => WebApp.close()}
+            style={{ height: '50px', fontSize: '15px', background: 'transparent', border: '1px solid var(--border-color)' }}
+          >
+            Закрыть
+          </button>
+        </div>
       </div>
     );
   }
