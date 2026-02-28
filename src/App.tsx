@@ -31,6 +31,7 @@ interface Order {
   assignedSpecialist?: {
     telegramId: string;
     name: string;
+    username?: string;
     lat?: number;
     lng?: number;
   };
@@ -104,12 +105,28 @@ function App() {
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [isBouncing, setIsBouncing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [initialLoading, setInitialLoading] = useState(true);
   const socketRef = useRef<Socket | null>(null);
+
+  const SkeletonLoader = () => (
+    <div className="skeleton-container" style={{ padding: '24px' }}>
+      <div className="skeleton-header" style={{ height: '32px', width: '60%', background: '#eee', borderRadius: '8px', marginBottom: '24px' }}></div>
+      <div className="skeleton-card" style={{ height: '200px', width: '100%', background: '#eee', borderRadius: '16px', marginBottom: '16px' }}></div>
+      <div className="skeleton-list" style={{ display: 'grid', gap: '12px' }}>
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} style={{ height: '56px', width: '100%', background: '#eee', borderRadius: '12px' }}></div>
+        ))}
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     const fetchActiveOrder = async () => {
       const tgUser = WebApp.initDataUnsafe?.user;
-      if (!tgUser?.id) return;
+      if (!tgUser?.id) {
+        setInitialLoading(false);
+        return;
+      }
 
       try {
         const res = await axios.get(`${API_URL}/order/active/${tgUser.id}`);
@@ -118,6 +135,8 @@ function App() {
         }
       } catch (err) {
         console.error('Failed to fetch active order', err);
+      } finally {
+        setInitialLoading(false);
       }
     };
 
@@ -490,10 +509,15 @@ function App() {
         </div>
       </div>
 
-      <button className="btn-secondary" onClick={() => WebApp.openTelegramLink('https://t.me/city_of_masters_client_bot')} style={{ marginTop: '24px' }}>
-        <MessageCircle size={18} style={{ marginRight: '8px' }} />
-        Связаться с оператором
-      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
+        <button className="btn-main" onClick={() => WebApp.openTelegramLink('https://t.me/city_of_masters_client_bot')} style={{ background: '#212121' }}>
+          <MessageCircle size={18} style={{ marginRight: '8px' }} />
+          Связаться с поддержкой
+        </button>
+        <button className="btn-secondary" onClick={() => WebApp.close()} style={{ border: 'none', background: 'transparent' }}>
+          Отменить и вернуться позже
+        </button>
+      </div>
     </div>
   );
 
@@ -504,9 +528,14 @@ function App() {
     const clientPos: [number, number] = [activeOrder.lat, activeOrder.lng];
 
     return (
-      <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <div className="header" style={{ padding: '16px' }}>
-          <div className="title" style={{ fontSize: '18px', marginBottom: 0 }}>Мастер в пути</div>
+      <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#f5f5f5' }}>
+        <div className="header" style={{ padding: '16px', background: 'white', borderBottom: '1px solid #eee' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="title" style={{ fontSize: '18px', marginBottom: 0 }}>Заказ #{activeOrder.id}</div>
+            <div style={{ padding: '4px 12px', background: 'rgba(76, 175, 80, 0.1)', color: 'var(--success-color)', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
+              Мастер в пути
+            </div>
+          </div>
         </div>
 
         <div style={{ flex: 1, position: 'relative' }}>
@@ -516,65 +545,78 @@ function App() {
               attribution='&copy; <a href="https://2gis.kg/">2GIS</a>'
             />
             
-            {/* Client Marker */}
             <Marker 
               position={clientPos}
               icon={L.divIcon({
                 className: 'custom-div-icon',
-                html: `<div style="background-color: #2196f3; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
+                html: `<div style="background-color: #2196f3; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
               })}
-            >
-              <Popup>Ваше местоположение</Popup>
-            </Marker>
+            />
 
-            {/* Specialist Marker */}
             {specialistPos && (
               <Marker 
                 position={specialistPos}
                 icon={L.divIcon({
                   className: 'custom-div-icon',
-                  html: `<div style="background-color: var(--primary-color); width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; box-shadow: var(--shadow-lg); display: flex; align-items: center; justify-content: center; transform: rotate(-45deg);">
-                           <div style="transform: rotate(45deg);">👷</div>
-                         </div>`,
-                  iconSize: [40, 40],
-                  iconAnchor: [20, 20]
+                  html: `<div style="background-color: var(--primary-color); width: 44px; height: 44px; border-radius: 50%; border: 3px solid white; box-shadow: var(--shadow-lg); display: flex; align-items: center; justify-content: center; font-size: 20px;">👷</div>`,
+                  iconSize: [44, 44],
+                  iconAnchor: [22, 22]
                 })}
-              >
-                <Popup>{spec?.name || 'Мастер'}</Popup>
-              </Marker>
+              />
             )}
 
             <ChangeView center={specialistPos || clientPos} />
           </MapContainer>
 
-          {/* Specialist Info Card */}
-          <div style={{ position: 'absolute', bottom: '24px', left: '16px', right: '16px', zIndex: 1000 }}>
-            <div className="card-item" style={{ background: 'var(--bg-color)', boxShadow: 'var(--shadow-lg)', padding: '16px', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-                    👷
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '16px' }}>{spec?.name || 'Имя не указано'}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--secondary-text)' }}>Ваш мастер</div>
+          <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', zIndex: 1000 }}>
+            <div style={{ background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: '24px', boxShadow: '0 -10px 25px rgba(0,0,0,0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', boxShadow: 'var(--shadow-md)' }}>
+                  👷
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 800, fontSize: '20px', color: '#212121' }}>{spec?.name || 'Мастер'}</div>
+                  <div style={{ fontSize: '14px', color: 'var(--secondary-text)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircle size={14} color="var(--success-color)" /> Проверенный специалист
                   </div>
                 </div>
-                <button className="btn-main" style={{ width: 'auto', padding: '10px 20px' }} onClick={() => WebApp.openTelegramLink('https://t.me/city_of_masters_client_bot')}>
-                  <MessageCircle size={18} />
+                <button 
+                  className="btn-main" 
+                  style={{ width: '50px', height: '50px', borderRadius: '50%', padding: 0 }}
+                  onClick={() => spec?.username ? WebApp.openTelegramLink(`https://t.me/${spec.username}`) : WebApp.openTelegramLink(`https://t.me/city_of_masters_client_bot`)}
+                >
+                  <MessageCircle size={24} />
                 </button>
               </div>
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', width: '100%', display: 'flex', gap: '12px' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '11px', color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Статус заказа</div>
-                  <div style={{ fontWeight: 600, color: 'var(--success-color)' }}>В процессе исполнения</div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                <div style={{ padding: '12px', background: '#f8f8f8', borderRadius: '12px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--secondary-text)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>Адрес</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#212121', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{activeOrder.address}</div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '11px', color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Адрес</div>
-                  <div style={{ fontSize: '13px', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{activeOrder.address}</div>
+                <div style={{ padding: '12px', background: '#f8f8f8', borderRadius: '12px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--secondary-text)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>Стоимость</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#212121' }}>Оплачено: 500 сом</div>
                 </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                  className="btn-main" 
+                  style={{ flex: 2 }}
+                  onClick={() => spec?.username ? WebApp.openTelegramLink(`https://t.me/${spec.username}`) : WebApp.openTelegramLink(`https://t.me/city_of_masters_client_bot`)}
+                >
+                  Написать мастеру
+                </button>
+                <button 
+                  className="btn-secondary" 
+                  style={{ flex: 1, color: '#444' }}
+                  onClick={() => WebApp.openTelegramLink('https://t.me/city_of_masters_operator')}
+                >
+                  Поддержка
+                </button>
               </div>
             </div>
           </div>
@@ -583,16 +625,46 @@ function App() {
     );
   };
 
+  if (initialLoading) return <SkeletonLoader />;
+
   if (activeOrder) {
     if (activeOrder.status === 'PAID') return renderRadarView();
     if (activeOrder.status === 'IN_PROGRESS') return renderTrackingView();
     if (activeOrder.status === 'COMPLETED') {
       return (
-        <div className="step-container" style={{ textAlign: 'center', paddingTop: '60px' }}>
-          <CheckCircle size={80} color="var(--success-color)" style={{ marginBottom: '24px' }} />
-          <div className="title">Заказ завершен!</div>
-          <p className="subtitle">Спасибо, что воспользовались нашими услугами.</p>
-          <button className="btn-main" onClick={() => setActiveOrder(null)}>На главную</button>
+        <div className="step-container" style={{ textAlign: 'center', paddingTop: '60px', paddingBottom: '40px' }}>
+          <div style={{ 
+            width: '100px', 
+            height: '100px', 
+            background: 'rgba(76, 175, 80, 0.1)', 
+            borderRadius: '50%', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            margin: '0 auto 24px' 
+          }}>
+            <CheckCircle size={60} color="var(--success-color)" />
+          </div>
+          <div className="title" style={{ fontSize: '24px', marginBottom: '12px' }}>Заказ выполнен!</div>
+          <p className="subtitle" style={{ fontSize: '15px', lineHeight: '1.6', marginBottom: '32px', color: 'var(--secondary-text)' }}>
+            Благодарим вас за выбор нашего сервиса! <br/>
+            Мы всегда готовы помочь вам снова. Желаем отличного дня! ✨
+          </p>
+          
+          <button 
+            className="btn-main" 
+            onClick={() => {
+              setActiveOrder(null);
+              setStep(1);
+              setSelectedCategory(null);
+              setSelectedHelpType(null);
+              setSelectedSubTask(null);
+              setOrderCreated(false);
+            }}
+            style={{ height: '54px', fontSize: '16px' }}
+          >
+            Создать новый заказ
+          </button>
         </div>
       );
     }
