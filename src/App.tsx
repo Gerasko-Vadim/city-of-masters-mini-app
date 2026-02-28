@@ -510,7 +510,7 @@ function App() {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
-        <button className="btn-main" onClick={() => WebApp.openTelegramLink('https://t.me/city_of_masters_client_bot')} style={{ background: '#212121' }}>
+        <button className="btn-main" onClick={() => WebApp.openTelegramLink('https://t.me/gorodmasterov312')} style={{ background: '#212121' }}>
           <MessageCircle size={18} style={{ marginRight: '8px' }} />
           Связаться с поддержкой
         </button>
@@ -613,7 +613,7 @@ function App() {
                 <button 
                   className="btn-secondary" 
                   style={{ flex: 1, color: '#444' }}
-                  onClick={() => WebApp.openTelegramLink('https://t.me/city_of_masters_operator')}
+                  onClick={() => WebApp.openTelegramLink('https://t.me/gorodmasterov312')}
                 >
                   Поддержка
                 </button>
