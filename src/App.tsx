@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import WebApp from '@twa-dev/sdk';
 import axios from 'axios';
-import { MapContainer, TileLayer, useMapEvents, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, useMapEvents, Marker } from 'react-leaflet';
 import { MapPin, ArrowLeft, ChevronRight, Phone, CheckCircle, MessageCircle, Search } from 'lucide-react';
 import { SERVICES_DATA, PROPERTY_TYPES } from './servicesData';
 import type { Category, TaskOption } from './servicesData';
