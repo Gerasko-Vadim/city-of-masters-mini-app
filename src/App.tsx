@@ -490,35 +490,67 @@ function App() {
     </div>
   );
 
-  const renderRadarView = () => (
-    <div className="step-container" style={{ textAlign: 'center', paddingTop: '40px' }}>
-      <div className="title">Ищем мастера</div>
-      <div className="subtitle">Оплата подтверждена. Мы подбираем лучшего специалиста рядом с вами.</div>
-      
-      <div className="radar-container">
-        <div className="radar-circle"></div>
-        <div className="radar-circle"></div>
-        <div className="radar-circle"></div>
-        <div className="radar-sweep"></div>
-        <div className="pulse"></div>
-      </div>
+  const SEARCH_TIPS = [
+    'Вы можете закрыть приложение — мы найдём мастера и пришлём уведомление в Telegram',
+    'Мастера проходят проверку перед тем, как выйти на работу',
+    'Среднее время ожидания — 10–20 минут. Спасибо за терпение 🙏',
+    'Как только мастер примет заказ, вы сразу получите уведомление',
+  ];
+  const [tipIndex, setTipIndex] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTipIndex(i => (i + 1) % SEARCH_TIPS.length), 5000);
+    return () => clearInterval(t);
+  }, []);
 
-      <div className="alert-box" style={{ background: 'rgba(14, 165, 233, 0.1)', border: '1px solid var(--primary-color)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Search size={20} color="var(--primary-color)" />
-          <span style={{ fontSize: '14px', fontWeight: 500 }}>Среднее время поиска: 2-5 минут</span>
+  const renderRadarView = () => (
+    <div className="step-container search-screen">
+
+      {/* Steps */}
+      <div className="search-steps">
+        <div className="search-step done">
+          <CheckCircle size={16} />
+          <span>Заказ создан</span>
+        </div>
+        <div className="search-step-line done" />
+        <div className="search-step done">
+          <CheckCircle size={16} />
+          <span>Оплата подтверждена</span>
+        </div>
+        <div className="search-step-line active" />
+        <div className="search-step active">
+          <div className="step-spinner" />
+          <span>Ищем мастера</span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
-        <button className="btn-main" onClick={() => WebApp.openTelegramLink('https://t.me/gorodmasterov312')} style={{ background: '#212121' }}>
-          <MessageCircle size={18} style={{ marginRight: '8px' }} />
-          Связаться с поддержкой
-        </button>
-        <button className="btn-secondary" onClick={() => WebApp.close()} style={{ border: 'none', background: 'transparent' }}>
-          Отменить и вернуться позже
-        </button>
+      {/* Calm ripple animation */}
+      <div className="ripple-container">
+        <div className="ripple-ring r1" />
+        <div className="ripple-ring r2" />
+        <div className="ripple-ring r3" />
+        <div className="ripple-core">
+          <span style={{ fontSize: 36 }}>🔧</span>
+        </div>
       </div>
+
+      <div className="title" style={{ marginTop: 0, fontSize: 22 }}>Ищем мастера</div>
+      <div className="subtitle" style={{ marginBottom: 8 }}>
+        Мастера находятся в течение <strong>20 минут</strong>.
+      </div>
+
+      {/* Rotating tip */}
+      <div className="search-tip-box">
+        <span className="search-tip-text">{SEARCH_TIPS[tipIndex]}</span>
+      </div>
+
+      <button
+        className="btn-main"
+        onClick={() => WebApp.openTelegramLink('https://t.me/gorodmasterov312')}
+        style={{ marginTop: 24 }}
+      >
+        <MessageCircle size={18} style={{ marginRight: 8 }} />
+        Связаться с поддержкой
+      </button>
     </div>
   );
 
