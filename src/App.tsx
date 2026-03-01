@@ -865,25 +865,17 @@ function App() {
           <button className="btn-main" onClick={() => setStep(2)}>Продолжить</button>
         )}
         {step === 2 && (
-          <div style={{ width: '100%' }}>
-            {!canProceedStep2 && (phoneTouched || addressTouched) && (
-              <div className="footer-validation-hint">
-                {!isAddressValid && <span>📍 Укажите адрес</span>}
-                {!isPhoneValid && <span>📱 Введите номер телефона</span>}
-              </div>
-            )}
-            <button
-              className="btn-main"
-              onClick={() => {
-                setPhoneTouched(true);
-                setAddressTouched(true);
-                if (canProceedStep2) setStep(3);
-              }}
-              style={{ opacity: canProceedStep2 ? 1 : 0.55 }}
-            >
-              Перейти к оплате
-            </button>
-          </div>
+          <button
+            className="btn-main"
+            onClick={() => {
+              setPhoneTouched(true);
+              setAddressTouched(true);
+              if (canProceedStep2) setStep(3);
+            }}
+            style={{ opacity: canProceedStep2 ? 1 : 0.55 }}
+          >
+            Перейти к оплате
+          </button>
         )}
         {step === 3 && (
           <button className="btn-main" onClick={createOrder} disabled={loading}>
