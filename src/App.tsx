@@ -308,6 +308,7 @@ function App() {
   };
 
   const renderStep1 = () => {
+    // ── Level 0: category selection ────────────────────────────────────
     if (!selectedCategory) {
       return (
         <div style={{ animation: 'fadeIn 0.3s ease' }}>
@@ -315,9 +316,18 @@ function App() {
           <div className="subtitle">С какими работами вам нужна помощь сегодня?</div>
           <div className="grid-list">
             {SERVICES_DATA.map(cat => (
-              <div key={cat.id} className="card-item" onClick={() => setSelectedCategory(cat)}>
-                <span className="card-label">{cat.label}</span>
-                <ChevronRight size={20} color="var(--secondary-text)" />
+              <div
+                key={cat.id}
+                className="card-item"
+                style={{ padding: '16px 20px', alignItems: 'center', gap: '16px' }}
+                onClick={() => setSelectedCategory(cat)}
+              >
+                <div style={{ fontSize: '36px', lineHeight: 1, flexShrink: 0 }}>{cat.icon}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="card-label" style={{ fontSize: '17px' }}>{cat.label}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--secondary-text)', marginTop: '2px' }}>{cat.description}</div>
+                </div>
+                <ChevronRight size={20} color="var(--secondary-text)" style={{ flexShrink: 0 }} />
               </div>
             ))}
           </div>
@@ -328,24 +338,40 @@ function App() {
     const question = selectedCategory.questions?.[0];
     if (!question) return <div>Data Error: No questions for category</div>;
 
+    // ── Level 1: help-type selection ───────────────────────────────────
     if (!selectedHelpType) {
       return (
         <div style={{ animation: 'fadeIn 0.3s ease' }}>
-          <div className="title">{question.text}</div>
-          <div className="subtitle">{selectedCategory.label}</div>
+          {/* Breadcrumb */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+            <span style={{ fontSize: '22px' }}>{selectedCategory.icon}</span>
+            <span style={{ fontSize: '14px', color: 'var(--secondary-text)', fontWeight: 500 }}>{selectedCategory.label}</span>
+          </div>
+          <div className="title" style={{ marginTop: '4px' }}>{question.text}</div>
           <div className="grid-list">
             {question.options.map(opt => (
-              <div key={opt.id} className="card-item" onClick={() => {
-                if (opt.subTasks) setSelectedHelpType(opt);
-                else {
-                  setSelectedHelpType(opt);
-                  setStep(2);
-                }
-              }}>
-                <span className="card-label">{opt.label}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                key={opt.id}
+                className="card-item"
+                style={{ padding: '14px 18px' }}
+                onClick={() => {
+                  if (opt.subTasks) setSelectedHelpType(opt);
+                  else {
+                    setSelectedHelpType(opt);
+                    setStep(2);
+                  }
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                  {opt.icon && <span style={{ fontSize: '22px', flexShrink: 0 }}>{opt.icon}</span>}
+                  <span className="card-label">{opt.label}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                   {opt.priceRange && <span className="price-tag">{opt.priceRange}</span>}
-                  <ChevronRight size={20} color="var(--secondary-text)" />
+                  {opt.subTasks
+                    ? <ChevronRight size={20} color="var(--secondary-text)" />
+                    : <ChevronRight size={20} color="var(--primary-color)" />
+                  }
                 </div>
               </div>
             ))}
@@ -354,20 +380,36 @@ function App() {
       );
     }
 
+    // ── Level 2: sub-task selection ────────────────────────────────────
     return (
       <div style={{ animation: 'fadeIn 0.3s ease' }}>
-        <div className="title">Уточните деталь</div>
-        <div className="subtitle">{selectedHelpType.label}</div>
+        {/* Breadcrumb */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+          <span style={{ fontSize: '22px' }}>{selectedCategory.icon}</span>
+          <span style={{ fontSize: '14px', color: 'var(--secondary-text)', fontWeight: 500 }}>{selectedCategory.label}</span>
+          <ChevronRight size={14} color="var(--secondary-text)" />
+          {selectedHelpType.icon && <span style={{ fontSize: '18px' }}>{selectedHelpType.icon}</span>}
+          <span style={{ fontSize: '14px', color: 'var(--secondary-text)', fontWeight: 500 }}>{selectedHelpType.label}</span>
+        </div>
+        <div className="title" style={{ marginTop: '4px' }}>Уточните деталь</div>
         <div className="grid-list">
           {selectedHelpType.subTasks?.map(sub => (
-            <div key={sub.id} className="card-item" onClick={() => {
-              setSelectedSubTask(sub);
-              setStep(2);
-            }}>
-              <span className="card-label">{sub.label}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              key={sub.id}
+              className="card-item"
+              style={{ padding: '14px 18px' }}
+              onClick={() => {
+                setSelectedSubTask(sub);
+                setStep(2);
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                {sub.icon && <span style={{ fontSize: '22px', flexShrink: 0 }}>{sub.icon}</span>}
+                <span className="card-label">{sub.label}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                 {sub.priceRange && <span className="price-tag">{sub.priceRange}</span>}
-                <ChevronRight size={20} color="var(--secondary-text)" />
+                <ChevronRight size={20} color="var(--primary-color)" />
               </div>
             </div>
           ))}
