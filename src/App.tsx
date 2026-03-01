@@ -98,6 +98,7 @@ function App() {
   const [position, setPosition] = useState<[number, number]>(BISHKEK_CENTER);
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('+996 ');
+  const isPhoneValid = /^\+996 \d{3} \d{3} \d{3}$/.test(phone) || /^\+996\d{9}$/.test(phone);
   const [problemDescription, setProblemDescription] = useState('');
   
   const [loading, setLoading] = useState(false);
@@ -747,7 +748,7 @@ function App() {
            <button className="btn-main" onClick={() => setStep(2)}>Продолжить</button>
         )}
         {step === 2 && (
-          <button className="btn-main" onClick={() => setStep(3)} disabled={phone.length < 13}>Перейти к оплате</button>
+          <button className="btn-main" onClick={() => setStep(3)} disabled={!isPhoneValid}>Перейти к оплате</button>
         )}
         {step === 3 && (
           <button className="btn-main" onClick={createOrder} disabled={loading}>
