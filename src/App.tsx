@@ -98,8 +98,26 @@ function App() {
   const [position, setPosition] = useState<[number, number]>(BISHKEK_CENTER);
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('+996 ');
-  const isPhoneValid = /^\+996 \d{3} \d{3} \d{3}$/.test(phone) || /^\+996\d{9}$/.test(phone);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [addressTouched, setAddressTouched] = useState(false);
   const [problemDescription, setProblemDescription] = useState('');
+
+  const isPhoneValid = /^\+996 \d{3} \d{3} \d{3}$/.test(phone);
+  const isAddressValid = address.trim().length >= 5;
+
+  const phoneError = phoneTouched && !isPhoneValid ? 'Введите номер: +996 XXX XXX XXX' : '';
+  const addressError = addressTouched && !isAddressValid ? 'Введите адрес (минимум 5 символов)' : '';
+
+  const canProceedStep2 = isPhoneValid && isAddressValid;
+
+  const formatPhoneInput = (raw: string) => {
+    const digits = raw.replace(/\D/g, '');
+    const local = (digits.startsWith('996') ? digits.slice(3) : digits).slice(0, 9);
+    if (local.length === 0) return '+996 ';
+    if (local.length <= 3) return `+996 ${local}`;
+    if (local.length <= 6) return `+996 ${local.slice(0, 3)} ${local.slice(3)}`;
+    return `+996 ${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6)}`;
+  };
   
   const [loading, setLoading] = useState(false);
   const [orderCreated, setOrderCreated] = useState(false);
@@ -362,34 +380,32 @@ function App() {
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <div className="title">Детали заказа</div>
       <div className="subtitle">Укажите адрес и контактные данные</div>
-      
-      <div className="form-label">Местоположение</div>
+
+      {/* Map */}
+      <div className="form-label">
+        Местоположение <span className="field-required">*</span>
+      </div>
       <div className="map-box">
         <MapContainer center={position} zoom={15} zoomControl={false} style={{ height: '100%', width: '100%' }}>
           <ChangeView center={position} />
-          <TileLayer 
-            url="https://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}" 
+          <TileLayer
+            url="https://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}"
             attribution='&copy; <a href="https://2gis.kg/">2GIS</a>'
           />
-          <LocationMarker setPosition={setPosition} setAddress={setAddress} setIsBouncing={setIsBouncing} />
+          <LocationMarker setPosition={setPosition} setAddress={(addr) => { setAddress(addr); setAddressTouched(true); }} setIsBouncing={setIsBouncing} />
         </MapContainer>
-        
-        {/* Floating Search */}
-        <div style={{ position: 'absolute', top: '12px', left: '12px', right: '12px', zIndex: 1000, display: 'flex', gap: '8px' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <input 
-              className="premium-input" 
+
+        <div style={{ position: 'absolute', top: '12px', left: '12px', right: '12px', zIndex: 1000 }}>
+          <div style={{ position: 'relative' }}>
+            <input
+              className="premium-input"
               style={{ width: '100%', height: '44px', paddingRight: '44px', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-color)' }}
               placeholder="Поиск адреса..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch();
-                }
-              }}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
             />
-            <button 
+            <button
               onClick={handleSearch}
               style={{ position: 'absolute', right: '4px', top: '4px', bottom: '4px', width: '36px', background: 'var(--primary-color)', border: 'none', borderRadius: '8px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
             >
@@ -402,54 +418,81 @@ function App() {
           <MapPin size={40} color="#212121" fill="var(--primary-color)" strokeWidth={2} />
         </div>
       </div>
-      
+
+      {/* Address field */}
       <div className="form-group">
-        <div className="form-label">Адрес</div>
-        <input 
-          className="premium-input" 
-          value={address} 
-          onChange={(e) => setAddress(e.target.value)} 
-          placeholder="Название улицы, номер дома" 
+        <div className="form-label">
+          Адрес <span className="field-required">*</span>
+        </div>
+        <input
+          className={`premium-input ${addressError ? 'input-error' : addressTouched && isAddressValid ? 'input-success' : ''}`}
+          value={address}
+          onChange={(e) => { setAddress(e.target.value); setAddressTouched(true); }}
+          onBlur={() => setAddressTouched(true)}
+          placeholder="Улица, номер дома"
         />
+        {addressError
+          ? <div className="field-error-msg">⚠ {addressError}</div>
+          : addressTouched && isAddressValid
+            ? <div className="field-success-msg">✓ Адрес указан</div>
+            : <div className="field-hint-msg">Уточните адрес или подвиньте карту</div>
+        }
       </div>
 
+      {/* Property type */}
       <div className="form-group">
         <div className="form-label">Тип объекта</div>
-        <div className="grid-list" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }}>
+        <div className="grid-list" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))' }}>
           {PROPERTY_TYPES.map(type => (
-            <div key={type} className={`card-item ${propertyType === type ? 'selected' : ''}`} onClick={() => setPropertyType(type)} style={{ padding: '12px' }}>
+            <div
+              key={type}
+              className={`card-item ${propertyType === type ? 'selected' : ''}`}
+              onClick={() => setPropertyType(type)}
+              style={{ padding: '12px' }}
+            >
               <span className="card-label" style={{ fontSize: '13px' }}>{type}</span>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Phone field */}
       <div className="form-group">
-        <div className="form-label">Номер телефона</div>
+        <div className="form-label">
+          Номер телефона <span className="field-required">*</span>
+        </div>
         <div style={{ position: 'relative' }}>
-          <Phone size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-text)' }} />
-          <input 
-            className="premium-input" 
+          <Phone size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: phoneError ? '#ef4444' : 'var(--secondary-text)', zIndex: 1 }} />
+          <input
+            className={`premium-input ${phoneError ? 'input-error' : phoneTouched && isPhoneValid ? 'input-success' : ''}`}
             style={{ paddingLeft: '45px' }}
-            value={phone} 
+            value={phone}
+            inputMode="tel"
             onChange={(e) => {
-              let val = e.target.value;
-              if (!val.startsWith('+996 ')) val = '+996 ';
-              setPhone(val);
+              setPhone(formatPhoneInput(e.target.value));
+              setPhoneTouched(true);
             }}
+            onBlur={() => setPhoneTouched(true)}
             placeholder="+996 555 123 456"
           />
         </div>
+        {phoneError
+          ? <div className="field-error-msg">⚠ {phoneError}</div>
+          : phoneTouched && isPhoneValid
+            ? <div className="field-success-msg">✓ Номер корректный</div>
+            : <div className="field-hint-msg">Формат: +996 555 123 456</div>
+        }
       </div>
 
+      {/* Description */}
       <div className="form-group">
-        <div className="form-label">Описание проблемы (опционально)</div>
-        <textarea 
-          className="premium-input" 
-          rows={3} 
-          value={problemDescription} 
+        <div className="form-label">Описание проблемы <span style={{ color: 'var(--secondary-text)', fontWeight: 400 }}>(необязательно)</span></div>
+        <textarea
+          className="premium-input"
+          rows={3}
+          value={problemDescription}
           onChange={(e) => setProblemDescription(e.target.value)}
-          placeholder="Опишите подробности..."
+          placeholder="Опишите детали, чтобы мастер мог лучше подготовиться..."
         />
       </div>
     </div>
@@ -777,14 +820,37 @@ function App() {
 
       <div className="footer-btn-container">
         {step === 1 && (selectedHelpType || (selectedCategory && !selectedCategory.questions?.[0].options.some(o => o.subTasks))) && (
-           <button className="btn-main" onClick={() => setStep(2)}>Продолжить</button>
+          <button className="btn-main" onClick={() => setStep(2)}>Продолжить</button>
         )}
         {step === 2 && (
-          <button className="btn-main" onClick={() => setStep(3)} disabled={!isPhoneValid}>Перейти к оплате</button>
+          <div style={{ width: '100%' }}>
+            {!canProceedStep2 && (phoneTouched || addressTouched) && (
+              <div className="footer-validation-hint">
+                {!isAddressValid && <span>📍 Укажите адрес</span>}
+                {!isPhoneValid && <span>📱 Введите номер телефона</span>}
+              </div>
+            )}
+            <button
+              className="btn-main"
+              onClick={() => {
+                setPhoneTouched(true);
+                setAddressTouched(true);
+                if (canProceedStep2) setStep(3);
+              }}
+              style={{ opacity: canProceedStep2 ? 1 : 0.55 }}
+            >
+              Перейти к оплате
+            </button>
+          </div>
         )}
         {step === 3 && (
           <button className="btn-main" onClick={createOrder} disabled={loading}>
-            {loading ? 'Обработка...' : 'Я оплатил'}
+            {loading
+              ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                  <span className="btn-spinner" /> Создаём заказ...
+                </span>
+              : 'Я оплатил — создать заказ'
+            }
           </button>
         )}
       </div>
