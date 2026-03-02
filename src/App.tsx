@@ -454,6 +454,9 @@ function App() {
               <Search size={18} />
             </button>
           </div>
+          <div style={{ marginTop: 4, fontSize: '11px', color: 'var(--secondary-text)', background: 'rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px', display: 'inline-block', backdropFilter: 'blur(4px)' }}>
+            Введите адрес и нажмите 🔍 для поиска
+          </div>
         </div>
 
         <div className={`yandex-marker ${isBouncing ? 'bouncing' : ''}`}>
