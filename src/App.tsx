@@ -442,7 +442,7 @@ function App() {
             <input
               className="premium-input"
               style={{ width: '100%', height: '44px', paddingRight: '44px', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-color)' }}
-              placeholder="Поиск адреса..."
+              placeholder="Введите адрес и нажмите 🔍 для поиска"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
@@ -453,9 +453,6 @@ function App() {
             >
               <Search size={18} />
             </button>
-          </div>
-          <div style={{ marginTop: 4, fontSize: '11px', color: 'var(--secondary-text)', background: 'rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px', display: 'inline-block', backdropFilter: 'blur(4px)' }}>
-            Введите адрес и нажмите 🔍 для поиска
           </div>
         </div>
 
