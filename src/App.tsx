@@ -28,6 +28,7 @@ interface Order {
   address: string;
   lat: number;
   lng: number;
+  paymentUrl?: string;
   assignedSpecialist?: {
     telegramId: string;
     name: string;
@@ -120,7 +121,6 @@ function App() {
   };
   
   const [loading, setLoading] = useState(false);
-  const [orderCreated, setOrderCreated] = useState(false);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [isBouncing, setIsBouncing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -300,7 +300,14 @@ function App() {
         category: selectedCategory?.label,
       });
       WebApp.openLink(res.data.paymentUrl);
-      setOrderCreated(true);
+      setActiveOrder({
+        id: res.data.orderId,
+        status: 'NEW',
+        address,
+        lat: position[0],
+        lng: position[1],
+        paymentUrl: res.data.paymentUrl,
+      });
     } catch (err) {
       console.error(err);
       WebApp.showAlert('Ошибка при создании заказа. Попробуйте снова.');
@@ -738,6 +745,37 @@ function App() {
   if (initialLoading) return <SkeletonLoader />;
 
   if (activeOrder) {
+    if (activeOrder.status === 'NEW') return (
+      <div className="step-container" style={{ textAlign: 'center', paddingTop: '60px', paddingBottom: '40px' }}>
+        <div style={{ fontSize: '64px', marginBottom: '24px' }}>💳</div>
+        <div className="title" style={{ fontSize: '22px', marginBottom: '12px' }}>Ожидаем оплату</div>
+        <p className="subtitle" style={{ fontSize: '15px', lineHeight: '1.6', marginBottom: '8px', color: 'var(--secondary-text)' }}>
+          Завершите оплату в Finik — как только мы получим подтверждение,<br/>
+          поиск мастера начнётся <strong>автоматически</strong>.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+          <span className="step-spinner" style={{ width: '32px', height: '32px', borderWidth: '3px' }} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {activeOrder.paymentUrl && (
+            <button
+              className="btn-main"
+              onClick={() => WebApp.openLink(activeOrder.paymentUrl!)}
+              style={{ height: '54px', fontSize: '16px' }}
+            >
+              💳 Открыть страницу оплаты
+            </button>
+          )}
+          <button
+            className="btn-secondary"
+            onClick={() => WebApp.close()}
+            style={{ height: '50px', fontSize: '15px', background: 'transparent', border: '1px solid var(--border-color)' }}
+          >
+            Закрыть
+          </button>
+        </div>
+      </div>
+    );
     if (activeOrder.status === 'PAID') return renderRadarView();
     if (activeOrder.status === 'IN_PROGRESS') return renderTrackingView();
     if (activeOrder.status === 'COMPLETED') {
@@ -769,7 +807,6 @@ function App() {
               setSelectedCategory(null);
               setSelectedHelpType(null);
               setSelectedSubTask(null);
-              setOrderCreated(false);
             }}
             style={{ height: '54px', fontSize: '16px' }}
           >
@@ -780,39 +817,6 @@ function App() {
     }
   }
 
-  if (orderCreated) {
-    return (
-      <div className="step-container" style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '40px' }}>
-        <div style={{ 
-          width: '100px', 
-          height: '100px', 
-          background: 'rgba(76, 175, 80, 0.1)', 
-          borderRadius: '50%', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          margin: '0 auto 24px' 
-        }}>
-          <CheckCircle size={60} color="var(--success-color)" />
-        </div>
-        <div className="title" style={{ fontSize: '24px', marginBottom: '12px' }}>Заказ создан!</div>
-        <p className="subtitle" style={{ fontSize: '15px', lineHeight: '1.6', marginBottom: '32px', color: 'var(--secondary-text)' }}>
-          После подтверждения оплаты мы сразу начнём поиск мастера.<br/>
-          Уведомление придёт в Telegram — можете закрыть это окно.
-        </p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <button
-            className="btn-secondary"
-            onClick={() => WebApp.close()}
-            style={{ height: '54px', fontSize: '16px', background: 'transparent', border: '1px solid var(--border-color)' }}
-          >
-            Закрыть
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="app-container">
