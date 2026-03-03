@@ -273,22 +273,22 @@ function App() {
     }
   };
 
-  const createOrder = async () => {
+  const handlePayment = async () => {
     setLoading(true);
     const user = WebApp.initDataUnsafe?.user;
-    
+
     const descriptionLines = [
       `Категория: ${selectedCategory?.label}`,
       `📝 Описание: ${selectedHelpType?.label}`,
       selectedSubTask ? `Задача: ${selectedSubTask.label}` : '',
       `🏠 Объект: ${propertyType}`,
-      problemDescription ? `📝 Описание: ${problemDescription}` : ''
+      problemDescription ? `📝 Описание: ${problemDescription}` : '',
     ].filter(Boolean);
 
     const description = descriptionLines.join('\n');
 
     try {
-      await axios.post(`${API_URL}/order`, {
+      const res = await axios.post(`${API_URL}/payment/initiate`, {
         customerName: user?.first_name || 'Клиент',
         phone,
         address,
@@ -296,8 +296,10 @@ function App() {
         totalAmount: 500,
         lat: position[0],
         lng: position[1],
-        telegramId: user?.id ? String(user.id) : undefined
+        telegramId: user?.id ? String(user.id) : undefined,
+        category: selectedCategory?.label,
       });
+      WebApp.openLink(res.data.paymentUrl);
       setOrderCreated(true);
     } catch (err) {
       console.error(err);
@@ -543,20 +545,10 @@ function App() {
   const renderStep3 = () => (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <div className="title">Оплата и подтверждение</div>
-      <div className="subtitle">Отсканируйте QR-код для оплаты комиссии</div>
+      <div className="subtitle">Оплатите комиссию через Finik — FIN, O!Money и другие банки</div>
 
-      <div className="card-item" style={{ flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '24px', padding: '24px' }}>
-        <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', boxShadow: 'var(--shadow-md)' }}>
-          {/* QR Code Placeholder */}
-          <img 
-            src="/mbusiness_qr.jpg" 
-            alt="Payment QR" 
-            style={{ width: '100%', height: 'auto', maxHeight: '300px', display: 'block', objectFit: 'contain', borderRadius: '8px' }}
-            onError={(e) => {
-              e.currentTarget.src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=CityOfMastersPayment";
-            }}
-          />
-        </div>
+      <div className="card-item" style={{ flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '24px', padding: '24px' }}>
+        <div style={{ fontSize: '52px' }}>💳</div>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--primary-color)' }}>500 сом</div>
           <div style={{ fontSize: '13px', color: 'var(--secondary-text)', marginTop: '4px' }}>Фиксированная комиссия</div>
@@ -565,11 +557,11 @@ function App() {
 
       <div className="alert-box" style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
         <p style={{ fontSize: '13px', margin: 0, lineHeight: 1.5 }}>
-          <strong>Инструкция:</strong><br/>
-          1. Отсканируйте QR и оплатите 500 сом<br/>
-          2. Сделайте скриншот чека<br/>
-          3. Нажмите кнопку "Я оплатил" ниже<br/>
-          4. Отправьте скриншот в чат нашего бота
+          <strong>Как это работает:</strong><br/>
+          1. Нажмите кнопку ниже<br/>
+          2. Оплатите 500 сом через Finik (FIN, O!Money, и др.)<br/>
+          3. После оплаты мы сразу начнём поиск мастера<br/>
+          4. Уведомление придёт в Telegram
         </p>
       </div>
     </div>
@@ -803,34 +795,17 @@ function App() {
         }}>
           <CheckCircle size={60} color="var(--success-color)" />
         </div>
-        <div className="title" style={{ fontSize: '24px', marginBottom: '12px' }}>Заявка создана!</div>
+        <div className="title" style={{ fontSize: '24px', marginBottom: '12px' }}>Заказ создан!</div>
         <p className="subtitle" style={{ fontSize: '15px', lineHeight: '1.6', marginBottom: '32px', color: 'var(--secondary-text)' }}>
-          Ваша заявка ожидает подтверждения оплаты. <br/>
-          <strong>Отправьте скриншот оплаты</strong> в чат бота, и мы сразу начнем поиск мастера.
+          После подтверждения оплаты мы сразу начнём поиск мастера.<br/>
+          Уведомление придёт в Telegram — можете закрыть это окно.
         </p>
-        
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <button 
-            className="btn-main" 
-            onClick={() => WebApp.openTelegramLink('https://t.me/city_of_masters_client_bot')}
-            style={{ 
-              height: '54px', 
-              fontSize: '16px', 
-              boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px'
-            }}
-          >
-            <MessageCircle size={22} />
-            Перейти в чат бота
-          </button>
-          
-          <button 
-            className="btn-secondary" 
+          <button
+            className="btn-secondary"
             onClick={() => WebApp.close()}
-            style={{ height: '50px', fontSize: '15px', background: 'transparent', border: '1px solid var(--border-color)' }}
+            style={{ height: '54px', fontSize: '16px', background: 'transparent', border: '1px solid var(--border-color)' }}
           >
             Закрыть
           </button>
@@ -878,12 +853,12 @@ function App() {
           </button>
         )}
         {step === 3 && (
-          <button className="btn-main" onClick={createOrder} disabled={loading}>
+          <button className="btn-main" onClick={handlePayment} disabled={loading}>
             {loading
               ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                   <span className="btn-spinner" /> Создаём заказ...
                 </span>
-              : 'Я оплатил — создать заказ'
+              : '💳 Перейти к оплате'
             }
           </button>
         )}
