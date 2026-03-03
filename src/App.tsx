@@ -279,7 +279,7 @@ function App() {
     
     const descriptionLines = [
       `Категория: ${selectedCategory?.label}`,
-      `Тип помощи: ${selectedHelpType?.label}`,
+      `Описание: ${selectedHelpType?.label}`,
       selectedSubTask ? `Задача: ${selectedSubTask.label}` : '',
       `Объект: ${propertyType}`,
       problemDescription ? `Описание: ${problemDescription}` : ''
