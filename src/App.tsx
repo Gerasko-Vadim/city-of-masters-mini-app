@@ -279,10 +279,10 @@ function App() {
     
     const descriptionLines = [
       `Категория: ${selectedCategory?.label}`,
-      `Описание: ${selectedHelpType?.label}`,
+      `📝 Описание: ${selectedHelpType?.label}`,
       selectedSubTask ? `Задача: ${selectedSubTask.label}` : '',
-      `Объект: ${propertyType}`,
-      problemDescription ? `Описание: ${problemDescription}` : ''
+      `🏠 Объект: ${propertyType}`,
+      problemDescription ? `📝 Описание: ${problemDescription}` : ''
     ].filter(Boolean);
 
     const description = descriptionLines.join('\n');
