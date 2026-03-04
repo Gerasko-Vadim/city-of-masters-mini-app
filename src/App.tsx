@@ -189,9 +189,28 @@ function App() {
     }
   }, []); // Only on mount
 
+  // Sync order status from server — called on visibility change and socket reconnect
+  const syncOrderStatus = async (orderId: number) => {
+    try {
+      const res = await axios.get(`${API_URL}/orders/${orderId}`);
+      const serverOrder = res.data;
+      setActiveOrder((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: serverOrder.status,
+          assignedSpecialist: serverOrder.assignedSpecialist ?? prev.assignedSpecialist,
+        };
+      });
+    } catch (e) {
+      console.warn('Failed to sync order status', e);
+    }
+  };
+
   // Connect socket once when order is created, keep alive until order is gone
   useEffect(() => {
     if (!activeOrder?.id) return;
+    const orderId = activeOrder.id;
 
     const socket = io(API_URL, {
       transports: ['websocket', 'polling'],
@@ -202,7 +221,7 @@ function App() {
     socketRef.current = socket;
 
     socket.on('orderUpdate', (updatedOrder: any) => {
-      if (updatedOrder.id === activeOrder.id) {
+      if (updatedOrder.id === orderId) {
         setActiveOrder((prev) => {
           if (!prev) return prev;
           return {
@@ -229,10 +248,30 @@ function App() {
       });
     });
 
+    // On reconnect — sync status in case update was missed while disconnected
+    socket.on('connect', () => {
+      syncOrderStatus(orderId);
+    });
+
     return () => {
       socket.disconnect();
     };
   }, [activeOrder?.id]); // only reconnect if order id changes
+
+  // Sync when mini-app becomes visible again (user returns from Finik payment)
+  useEffect(() => {
+    if (!activeOrder?.id) return;
+    const orderId = activeOrder.id;
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        syncOrderStatus(orderId);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [activeOrder?.id]);
 
   useEffect(() => {
     try {
