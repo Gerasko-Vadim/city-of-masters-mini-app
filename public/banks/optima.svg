@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="50" fill="#CC1414"/>
+  <!-- Dark left half -->
+  <path d="M50 10 A40 40 0 0 0 50 90 Z" fill="#2A2A2A"/>
+  <!-- White arrow/chevron pointing right -->
+  <path d="M36 34 L62 50 L36 66" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

@@ -601,13 +601,11 @@ function App() {
   );
 
   const BANKS = [
-    { name: 'Мбанк',     color: '#00A651', abbr: 'М'  },
-    { name: 'О!Деньги',  color: '#E30613', abbr: 'О!' },
-    { name: 'BakaiBank', color: '#003DA5', abbr: 'B'  },
-    { name: 'FIN',       color: '#FF6B00', abbr: 'F'  },
-    { name: 'Optima',    color: '#0077C8', abbr: 'O'  },
-    { name: 'RSK',       color: '#C8102E', abbr: 'R'  },
-    { name: 'Элкарт',    color: '#6A1B9A', abbr: 'Э'  },
+    { name: 'Мбанк',     img: '/banks/mbank.svg'  },
+    { name: 'О!Деньги',  img: '/banks/odengi.svg' },
+    { name: 'BakaiBank', img: '/banks/bakai.svg'  },
+    { name: 'Optima',    img: '/banks/optima.svg' },
+    { name: 'РСК Банк',  img: '/banks/rsk.svg'    },
   ];
 
   // Occasionally nudge nearby masters count ±1 for live feel
@@ -695,15 +693,30 @@ function App() {
         <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
           Оплата с любого банка Кыргызстана
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           {BANKS.map(b => (
-            <div key={b.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '6px 10px' }}>
-              <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: b.color, color: '#fff', fontWeight: 800, fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                {b.abbr}
-              </div>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary-text)' }}>{b.name}</span>
+            <div key={b.name} title={b.name} style={{ width: '44px', height: '44px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.12)' }}>
+              <img src={b.img} alt={b.name} style={{ width: '100%', height: '100%', display: 'block' }} />
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ── Trust badges ─────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '14px', padding: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '22px' }}>💬</span>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary-text)' }}>Поддержка 24/7</div>
+            <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '2px' }}>Оператор всегда на связи</div>
+          </div>
+        </div>
+        <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '14px', padding: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '22px' }}>🔄</span>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary-text)' }}>Возврат денег</div>
+            <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '2px' }}>Если мастер не приехал</div>
+          </div>
         </div>
       </div>
 

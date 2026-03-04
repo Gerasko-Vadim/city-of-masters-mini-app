@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="22" fill="white"/>
+  <!-- Pink speech bubble square -->
+  <path d="M20 18 L80 18 Q84 18 84 22 L84 68 Q84 72 80 72 L52 72 L42 84 L42 72 L20 72 Q16 72 16 68 L16 22 Q16 18 20 18 Z" fill="#E0146A"/>
+  <!-- O ring -->
+  <circle cx="46" cy="44" r="13" stroke="white" stroke-width="7" fill="none"/>
+  <!-- ! mark -->
+  <line x1="68" y1="32" x2="68" y2="52" stroke="white" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="68" cy="61" r="4" fill="white"/>
+</svg>
