@@ -36,7 +36,8 @@ body {
 }
 
 .app-container {
-  height: 100vh;
+  height: 100dvh;
+  height: var(--tg-viewport-stable-height, 100dvh);
   display: flex;
   flex-direction: column;
   position: relative;

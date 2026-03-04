@@ -126,6 +126,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [initialLoading, setInitialLoading] = useState(true);
   const socketRef = useRef<Socket | null>(null);
+  const stepContainerRef = useRef<HTMLDivElement>(null);
 
   const SkeletonLoader = () => (
     <div className="skeleton-container" style={{ padding: '24px' }}>
@@ -237,6 +238,10 @@ function App() {
       console.warn('Telegram SDK not available');
     }
   }, []);
+
+  useEffect(() => {
+    stepContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+  }, [step]);
 
   const handleSearch = async () => {
     if (!searchQuery) return;
@@ -835,7 +840,7 @@ function App() {
         </div>
       )}
 
-      <div className="step-container">
+      <div className="step-container" ref={stepContainerRef}>
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
         {step === 3 && renderStep3()}
