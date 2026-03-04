@@ -277,12 +277,14 @@ function App() {
     setLoading(true);
     const user = WebApp.initDataUnsafe?.user;
 
+    const priceRange = selectedSubTask?.priceRange ?? selectedHelpType?.priceRange ?? '';
+    const taskLabel = [selectedHelpType?.label, selectedSubTask?.label].filter(Boolean).join(' — ');
+
     const descriptionLines = [
-      `Категория: ${selectedCategory?.label}`,
-      `📝 Описание: ${selectedHelpType?.label}`,
-      selectedSubTask ? `Задача: ${selectedSubTask.label}` : '',
-      `🏠 Объект: ${propertyType}`,
-      problemDescription ? `📝 Описание: ${problemDescription}` : '',
+      taskLabel,
+      `Объект: ${propertyType}`,
+      priceRange ? `Стоимость: ${priceRange}` : '',
+      problemDescription ? `Описание: ${problemDescription}` : '',
     ].filter(Boolean);
 
     const description = descriptionLines.join('\n');
