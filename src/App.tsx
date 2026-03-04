@@ -258,20 +258,14 @@ function App() {
     };
   }, [activeOrder?.id]); // only reconnect if order id changes
 
-  // Sync when mini-app becomes visible again (user returns from Finik payment)
+  // Poll backend every 3s while order is NEW (payment pending)
   useEffect(() => {
-    if (!activeOrder?.id) return;
+    if (!activeOrder?.id || activeOrder.status !== 'NEW') return;
     const orderId = activeOrder.id;
 
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        syncOrderStatus(orderId);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [activeOrder?.id]);
+    const interval = setInterval(() => syncOrderStatus(orderId), 3000);
+    return () => clearInterval(interval);
+  }, [activeOrder?.id, activeOrder?.status]);
 
   useEffect(() => {
     try {
