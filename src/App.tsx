@@ -601,25 +601,43 @@ function App() {
 
   const renderStep3 = () => (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
-      <div className="title">Оплата и подтверждение</div>
-      <div className="subtitle">Оплатите комиссию через Finik — FIN, O!Money и другие банки</div>
+      <div className="title">Оплата вызова</div>
 
-      <div className="card-item" style={{ flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '24px', padding: '24px' }}>
-        <div style={{ fontSize: '52px' }}>💳</div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--primary-color)' }}>500 сом</div>
-          <div style={{ fontSize: '13px', color: 'var(--secondary-text)', marginTop: '4px' }}>Фиксированная комиссия</div>
-        </div>
+      {/* Price */}
+      <div style={{ textAlign: 'center', margin: '20px 0 24px' }}>
+        <div style={{ fontSize: '42px', fontWeight: '900', color: 'var(--primary-color)', lineHeight: 1 }}>500 сом</div>
+        <div style={{ fontSize: '13px', color: 'var(--secondary-text)', marginTop: '6px' }}>фиксированная стоимость вызова</div>
       </div>
 
-      <div className="alert-box" style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
-        <p style={{ fontSize: '13px', margin: 0, lineHeight: 1.5 }}>
-          <strong>Как это работает:</strong><br/>
-          1. Нажмите кнопку ниже<br/>
-          2. Оплатите 500 сом через Finik (FIN, O!Money, и др.)<br/>
-          3. После оплаты мы сразу начнём поиск мастера<br/>
-          4. Уведомление придёт в Telegram
-        </p>
+      {/* Steps */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+        {[
+          { icon: '💳', text: 'Оплатите 500 сом за вызов мастера' },
+          { icon: '🔧', text: 'Ближайший свободный мастер возьмёт ваш заказ' },
+          { icon: '🚗', text: 'Мастер приедет к вам в течение 20 минут' },
+        ].map((step, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px', background: 'var(--bg-secondary)', borderRadius: '14px', padding: '14px 16px' }}>
+            <div style={{ fontSize: '28px', flexShrink: 0 }}>{step.icon}</div>
+            <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--primary-text)', lineHeight: 1.4 }}>
+              <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>{i + 1}. </span>
+              {step.text}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Banks */}
+      <div style={{ background: 'var(--bg-secondary)', borderRadius: '14px', padding: '14px 16px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--secondary-text)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          Оплата с любого банка Кыргызстана
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {['Мбанк', 'О!Деньги', 'BakaiBank', 'FIN', 'Optima', 'RSK', 'Элкарт'].map(bank => (
+            <span key={bank} style={{ background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '20px', padding: '4px 12px', fontSize: '13px', fontWeight: 500 }}>
+              {bank}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
