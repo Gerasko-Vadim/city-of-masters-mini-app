@@ -1,13 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Red right half -->
-  <path d="M50 5 A45 45 0 0 1 50 95 Z" fill="#CC1414"/>
-  <path d="M50 5 A45 45 0 1 0 50 95 Z" fill="#CC1414"/>
-  <!-- Full circle base red -->
-  <circle cx="50" cy="50" r="45" fill="#CC1414"/>
-  <!-- Black left side -->
-  <path d="M50 5 A45 45 0 0 0 50 95 Z" fill="#1a1a1a"/>
-  <!-- Dark diamond/kite shape on the left -->
-  <path d="M50 5 L8 50 L50 95 Z" fill="#2a2a2a"/>
-  <!-- White chevron arrow pointing right -->
-  <path d="M34 32 L62 50 L34 68" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <clipPath id="circle">
+    <circle cx="50" cy="50" r="48"/>
+  </clipPath>
+
+  <g clip-path="url(#circle)">
+    <!-- Red background (full) -->
+    <rect x="0" y="0" width="100" height="100" fill="#CC1212"/>
+
+    <!-- Dark left segment (vertical chord at x≈38) -->
+    <!-- Top-left: dark gray -->
+    <path d="M2 50 A48 48 0 0 1 38 4 L38 50 Z" fill="#3a3a3a"/>
+    <!-- Bottom-left: black -->
+    <path d="M2 50 A48 48 0 0 0 38 96 L38 50 Z" fill="#0a0a0a"/>
+
+    <!-- White chevron arrow pointing right -->
+    <path d="M22 28 L55 50 L22 72" stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
 </svg>
