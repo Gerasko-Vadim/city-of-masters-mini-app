@@ -192,7 +192,7 @@ function App() {
   // Sync order status from server — called on visibility change and socket reconnect
   const syncOrderStatus = async (orderId: number) => {
     try {
-      const res = await axios.get(`${API_URL}/orders/${orderId}`);
+      const res = await axios.get(`${API_URL}/payment/order/${orderId}/status`);
       const serverOrder = res.data;
       setActiveOrder((prev) => {
         if (!prev) return prev;
