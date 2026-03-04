@@ -123,6 +123,7 @@ function App() {
   
   const [loading, setLoading] = useState(false);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
+  const [nearbyMasters, setNearbyMasters] = useState(() => Math.floor(Math.random() * 4) + 3); // 3–6
   const [isBouncing, setIsBouncing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [initialLoading, setInitialLoading] = useState(true);
@@ -609,58 +610,103 @@ function App() {
     { name: 'Элкарт',    color: '#6A1B9A', abbr: 'Э'  },
   ];
 
+  // Occasionally nudge nearby masters count ±1 for live feel
+  useEffect(() => {
+    const t = setInterval(() => {
+      setNearbyMasters(n => {
+        const delta = Math.random() < 0.5 ? 1 : -1;
+        return Math.min(8, Math.max(2, n + delta));
+      });
+    }, 7000 + Math.random() * 5000);
+    return () => clearInterval(t);
+  }, []);
+
   const renderStep3 = () => (
-    <div style={{ minHeight: '400px' }}>
-      {/* Hero */}
-      <div style={{ textAlign: 'center', padding: '8px 0 20px' }}>
-        <div style={{ fontSize: '36px', marginBottom: '10px' }}>🔧</div>
-        <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--primary-text)', lineHeight: 1.25, marginBottom: '6px' }}>
-          Оплати — и мастер<br/>уже едет к тебе
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+
+      {/* ── Live masters counter (hero) ──────────────────── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+        borderRadius: '20px',
+        padding: '22px 20px',
+        textAlign: 'center',
+        color: '#fff',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* pulse rings */}
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', animation: 'pulseRing 3s ease-out infinite' }} />
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.07)', animation: 'pulseRing 3s ease-out 1s infinite' }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '6px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', display: 'inline-block', boxShadow: '0 0 0 3px rgba(74,222,128,0.3)', animation: 'livePulse 1.5s ease-in-out infinite' }} />
+            <span style={{ fontSize: '12px', fontWeight: 600, opacity: 0.9, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Прямо сейчас</span>
+          </div>
+
+          <div style={{ fontSize: '72px', fontWeight: '900', lineHeight: 1, letterSpacing: '-2px' }}>
+            {nearbyMasters}
+          </div>
+          <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>
+            мастеров рядом с вами
+          </div>
+          <div style={{ fontSize: '13px', opacity: 0.8, marginTop: '6px' }}>
+            📍 Готовы выехать в течение 15 минут
+          </div>
         </div>
-        <div style={{ fontSize: '13px', color: 'var(--secondary-text)' }}>быстро, просто, надёжно</div>
       </div>
 
-      {/* Price badge */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-        <div style={{ background: 'var(--primary-color)', color: '#fff', borderRadius: '20px', padding: '10px 28px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
-          <span style={{ fontSize: '28px', fontWeight: '900', lineHeight: 1 }}>500 сом</span>
-          <span style={{ fontSize: '11px', opacity: 0.85, marginTop: '3px' }}>фиксированная цена вызова</span>
+      {/* ── Price card ───────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '16px', padding: '14px 12px', textAlign: 'center' }}>
+          <div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--primary-text)', lineHeight: 1 }}>500 ₸</div>
+          <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '4px' }}>вызов мастера</div>
+        </div>
+        <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '16px', padding: '14px 12px', textAlign: 'center' }}>
+          <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--primary-text)', lineHeight: 1 }}>~15 мин</div>
+          <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '4px' }}>среднее время приезда</div>
+        </div>
+        <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '16px', padding: '14px 12px', textAlign: 'center' }}>
+          <div style={{ fontSize: '24px', fontWeight: '900', color: '#22c55e', lineHeight: 1 }}>100%</div>
+          <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '4px' }}>гарантия</div>
         </div>
       </div>
 
-      {/* Steps */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+      {/* ── How it works ─────────────────────────────────── */}
+      <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>Как это работает</div>
         {[
-          { icon: '💳', title: 'Оплати вызов', sub: '500 сом — один раз за вызов мастера' },
-          { icon: '📲', title: 'Мастер примет заказ', sub: 'Ближайший свободный мастер возьмёт задание' },
-          { icon: '🚗', title: 'Мастер уже едет', sub: 'Приедет в течение 20 минут' },
+          { icon: '💳', title: 'Оплати вызов — 500 ₸', sub: 'Без скрытых платежей' },
+          { icon: '⚡', title: 'Мастер выезжает', sub: 'Ближайший свободный специалист' },
+          { icon: '✅', title: 'Работа выполнена', sub: 'Платите мастеру только за саму работу' },
         ].map((s, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-secondary)', borderRadius: '14px', padding: '12px 14px', minHeight: '60px' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{s.icon}</div>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-color)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>{s.icon}</div>
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--primary-text)' }}>{i + 1}. {s.title}</div>
-              <div style={{ fontSize: '12px', color: 'var(--secondary-text)', marginTop: '2px' }}>{s.sub}</div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--primary-text)' }}>{s.title}</div>
+              <div style={{ fontSize: '12px', color: 'var(--secondary-text)' }}>{s.sub}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Banks */}
-      <div style={{ background: 'var(--bg-secondary)', borderRadius: '14px', padding: '14px' }}>
-        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--secondary-text)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      {/* ── Banks ────────────────────────────────────────── */}
+      <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '14px 16px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
           Оплата с любого банка Кыргызстана
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-          {BANKS.map(bank => (
-            <div key={bank.name} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: bank.color, color: '#fff', fontWeight: 800, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                {bank.abbr}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {BANKS.map(b => (
+            <div key={b.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '6px 10px' }}>
+              <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: b.color, color: '#fff', fontWeight: 800, fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {b.abbr}
               </div>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--primary-text)' }}>{bank.name}</span>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary-text)' }}>{b.name}</span>
             </div>
           ))}
         </div>
       </div>
+
     </div>
   );
 
