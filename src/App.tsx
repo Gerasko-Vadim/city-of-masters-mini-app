@@ -693,10 +693,10 @@ function App() {
         <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
           Оплата с любого банка Кыргызстана
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
           {BANKS.map(b => (
-            <div key={b.name} title={b.name} style={{ width: '44px', height: '44px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.12)' }}>
-              <img src={b.img} alt={b.name} style={{ width: '100%', height: '100%', display: 'block' }} />
+            <div key={b.name} title={b.name} style={{ height: '44px', width: b.name === 'Мбанк' ? '88px' : '44px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.12)' }}>
+              <img src={b.img} alt={b.name} style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }} />
             </div>
           ))}
         </div>

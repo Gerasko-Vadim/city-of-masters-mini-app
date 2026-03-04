@@ -1,14 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <linearGradient id="mg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2db88a"/>
-      <stop offset="100%" stop-color="#1a7a60"/>
-    </linearGradient>
-  </defs>
-  <rect width="100" height="100" rx="22" fill="url(#mg)"/>
-  <!-- Yellow M -->
-  <path d="M18 72 L18 34 L36 58 L54 34 L54 72" stroke="#F5C842" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <!-- White 1 -->
-  <line x1="70" y1="30" x2="70" y2="72" stroke="white" stroke-width="10" stroke-linecap="round"/>
-  <line x1="60" y1="42" x2="70" y2="30" stroke="white" stroke-width="10" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 60">
+  <!-- Red left block -->
+  <rect x="0" y="0" width="36" height="60" fill="#E8170A"/>
+  <!-- Black thin divider -->
+  <rect x="36" y="0" width="3" height="60" fill="#111"/>
+  <!-- Orange middle block -->
+  <rect x="39" y="0" width="36" height="60" fill="#F5A800"/>
+  <!-- Red thin stripe -->
+  <rect x="75" y="0" width="4" height="60" fill="#E8170A"/>
+  <!-- Blue thin stripe -->
+  <rect x="79" y="0" width="4" height="60" fill="#1565C0"/>
+  <!-- Green right block -->
+  <rect x="83" y="0" width="37" height="60" fill="#2E7D32"/>
+  <!-- mBank text -->
+  <text x="60" y="40" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="white" text-anchor="middle">mBank</text>
 </svg>

@@ -1,7 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="50" fill="#CC1414"/>
-  <!-- Dark left half -->
-  <path d="M50 10 A40 40 0 0 0 50 90 Z" fill="#2A2A2A"/>
-  <!-- White arrow/chevron pointing right -->
-  <path d="M36 34 L62 50 L36 66" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Red right half -->
+  <path d="M50 5 A45 45 0 0 1 50 95 Z" fill="#CC1414"/>
+  <path d="M50 5 A45 45 0 1 0 50 95 Z" fill="#CC1414"/>
+  <!-- Full circle base red -->
+  <circle cx="50" cy="50" r="45" fill="#CC1414"/>
+  <!-- Black left side -->
+  <path d="M50 5 A45 45 0 0 0 50 95 Z" fill="#1a1a1a"/>
+  <!-- Dark diamond/kite shape on the left -->
+  <path d="M50 5 L8 50 L50 95 Z" fill="#2a2a2a"/>
+  <!-- White chevron arrow pointing right -->
+  <path d="M34 32 L62 50 L34 68" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 </svg>
