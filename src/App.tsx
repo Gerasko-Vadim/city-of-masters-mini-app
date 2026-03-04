@@ -599,43 +599,65 @@ function App() {
     </div>
   );
 
-  const renderStep3 = () => (
-    <div style={{ animation: 'fadeIn 0.3s ease' }}>
-      <div className="title">Оплата вызова</div>
+  const BANKS = [
+    { name: 'Мбанк',     color: '#00A651', abbr: 'М'  },
+    { name: 'О!Деньги',  color: '#E30613', abbr: 'О!' },
+    { name: 'BakaiBank', color: '#003DA5', abbr: 'B'  },
+    { name: 'FIN',       color: '#FF6B00', abbr: 'F'  },
+    { name: 'Optima',    color: '#0077C8', abbr: 'O'  },
+    { name: 'RSK',       color: '#C8102E', abbr: 'R'  },
+    { name: 'Элкарт',    color: '#6A1B9A', abbr: 'Э'  },
+  ];
 
-      {/* Price */}
-      <div style={{ textAlign: 'center', margin: '20px 0 24px' }}>
-        <div style={{ fontSize: '42px', fontWeight: '900', color: 'var(--primary-color)', lineHeight: 1 }}>500 сом</div>
-        <div style={{ fontSize: '13px', color: 'var(--secondary-text)', marginTop: '6px' }}>фиксированная стоимость вызова</div>
+  const renderStep3 = () => (
+    <div style={{ minHeight: '400px' }}>
+      {/* Hero */}
+      <div style={{ textAlign: 'center', padding: '8px 0 20px' }}>
+        <div style={{ fontSize: '36px', marginBottom: '10px' }}>🔧</div>
+        <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--primary-text)', lineHeight: 1.25, marginBottom: '6px' }}>
+          Оплати — и мастер<br/>уже едет к тебе
+        </div>
+        <div style={{ fontSize: '13px', color: 'var(--secondary-text)' }}>быстро, просто, надёжно</div>
+      </div>
+
+      {/* Price badge */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+        <div style={{ background: 'var(--primary-color)', color: '#fff', borderRadius: '20px', padding: '10px 28px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+          <span style={{ fontSize: '28px', fontWeight: '900', lineHeight: 1 }}>500 сом</span>
+          <span style={{ fontSize: '11px', opacity: 0.85, marginTop: '3px' }}>фиксированная цена вызова</span>
+        </div>
       </div>
 
       {/* Steps */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
         {[
-          { icon: '💳', text: 'Оплатите 500 сом за вызов мастера' },
-          { icon: '🔧', text: 'Ближайший свободный мастер возьмёт ваш заказ' },
-          { icon: '🚗', text: 'Мастер приедет к вам в течение 20 минут' },
-        ].map((step, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px', background: 'var(--bg-secondary)', borderRadius: '14px', padding: '14px 16px' }}>
-            <div style={{ fontSize: '28px', flexShrink: 0 }}>{step.icon}</div>
-            <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--primary-text)', lineHeight: 1.4 }}>
-              <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>{i + 1}. </span>
-              {step.text}
+          { icon: '💳', title: 'Оплати вызов', sub: '500 сом — один раз за вызов мастера' },
+          { icon: '📲', title: 'Мастер примет заказ', sub: 'Ближайший свободный мастер возьмёт задание' },
+          { icon: '🚗', title: 'Мастер уже едет', sub: 'Приедет в течение 20 минут' },
+        ].map((s, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-secondary)', borderRadius: '14px', padding: '12px 14px', minHeight: '60px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{s.icon}</div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--primary-text)' }}>{i + 1}. {s.title}</div>
+              <div style={{ fontSize: '12px', color: 'var(--secondary-text)', marginTop: '2px' }}>{s.sub}</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* Banks */}
-      <div style={{ background: 'var(--bg-secondary)', borderRadius: '14px', padding: '14px 16px' }}>
-        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--secondary-text)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      <div style={{ background: 'var(--bg-secondary)', borderRadius: '14px', padding: '14px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--secondary-text)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           Оплата с любого банка Кыргызстана
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-          {['Мбанк', 'О!Деньги', 'BakaiBank', 'FIN', 'Optima', 'RSK', 'Элкарт'].map(bank => (
-            <span key={bank} style={{ background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '20px', padding: '4px 12px', fontSize: '13px', fontWeight: 500 }}>
-              {bank}
-            </span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+          {BANKS.map(bank => (
+            <div key={bank.name} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: bank.color, color: '#fff', fontWeight: 800, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {bank.abbr}
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--primary-text)' }}>{bank.name}</span>
+            </div>
           ))}
         </div>
       </div>
