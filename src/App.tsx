@@ -189,42 +189,50 @@ function App() {
     }
   }, []); // Only on mount
 
+  // Connect socket once when order is created, keep alive until order is gone
   useEffect(() => {
-    if (!activeOrder) return;
+    if (!activeOrder?.id) return;
 
-    const socket = io(API_URL, { transports: ['websocket', 'polling'] });
+    const socket = io(API_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+    });
     socketRef.current = socket;
 
-    socket.on('connect', () => {
-      console.log('Connected to socket');
-    });
-
-    socket.on('orderUpdate', (updatedOrder: Order) => {
+    socket.on('orderUpdate', (updatedOrder: any) => {
       if (updatedOrder.id === activeOrder.id) {
-        setActiveOrder((prev) => ({ ...prev, ...updatedOrder }));
-      }
-    });
-
-    socket.on('specialistUpdate', (updatedSpec: any) => {
-      if (activeOrder?.assignedSpecialist?.telegramId === String(updatedSpec.telegramId)) {
         setActiveOrder((prev) => {
           if (!prev) return prev;
           return {
             ...prev,
-            assignedSpecialist: {
-              ...prev.assignedSpecialist!,
-              lat: updatedSpec.lat,
-              lng: updatedSpec.lng,
-            },
+            status: updatedOrder.status,
+            assignedSpecialist: updatedOrder.assignedSpecialist ?? prev.assignedSpecialist,
           };
         });
       }
     });
 
+    socket.on('specialistUpdate', (updatedSpec: any) => {
+      setActiveOrder((prev) => {
+        if (!prev?.assignedSpecialist) return prev;
+        if (String(updatedSpec.telegramId) !== prev.assignedSpecialist.telegramId) return prev;
+        return {
+          ...prev,
+          assignedSpecialist: {
+            ...prev.assignedSpecialist,
+            lat: updatedSpec.lat,
+            lng: updatedSpec.lng,
+          },
+        };
+      });
+    });
+
     return () => {
       socket.disconnect();
     };
-  }, [activeOrder?.id, activeOrder?.assignedSpecialist?.telegramId]);
+  }, [activeOrder?.id]); // only reconnect if order id changes
 
   useEffect(() => {
     try {
