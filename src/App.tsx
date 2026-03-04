@@ -28,6 +28,7 @@ interface Order {
   address: string;
   lat: number;
   lng: number;
+  description?: string;
   paymentUrl?: string;
   assignedSpecialist?: {
     telegramId: string;
@@ -313,6 +314,7 @@ function App() {
         address,
         lat: position[0],
         lng: position[1],
+        description,
         paymentUrl: res.data.paymentUrl,
       });
     } catch (err) {
@@ -753,17 +755,35 @@ function App() {
 
   if (activeOrder) {
     if (activeOrder.status === 'NEW') return (
-      <div className="step-container" style={{ textAlign: 'center', paddingTop: '60px', paddingBottom: '40px' }}>
-        <div style={{ fontSize: '64px', marginBottom: '24px' }}>💳</div>
-        <div className="title" style={{ fontSize: '22px', marginBottom: '12px' }}>Ожидаем оплату</div>
-        <p className="subtitle" style={{ fontSize: '15px', lineHeight: '1.6', marginBottom: '8px', color: 'var(--secondary-text)' }}>
-          Завершите оплату в Finik — как только мы получим подтверждение,<br/>
-          поиск мастера начнётся <strong>автоматически</strong>.
-        </p>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
-          <span className="step-spinner" style={{ width: '32px', height: '32px', borderWidth: '3px' }} />
+      <div className="step-container" style={{ paddingBottom: '40px' }}>
+        <div style={{ textAlign: 'center', paddingTop: '32px', marginBottom: '24px' }}>
+          <div style={{ fontSize: '52px', marginBottom: '16px' }}>💳</div>
+          <div className="title" style={{ fontSize: '22px', marginBottom: '8px' }}>Ожидаем оплату</div>
+          <p className="subtitle" style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--secondary-text)', marginBottom: '16px' }}>
+            Завершите оплату — поиск мастера начнётся <strong>автоматически</strong>
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--secondary-text)', fontSize: '13px' }}>
+            <span className="step-spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }} />
+            Ожидаем подтверждения...
+          </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+        {/* Order preview */}
+        <div className="card-item" style={{ flexDirection: 'column', gap: '10px', marginBottom: '16px', padding: '16px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ваш заказ #{activeOrder.id}</div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '16px' }}>📍</span>
+            <span style={{ fontSize: '14px', color: 'var(--primary-text)' }}>{activeOrder.address}</span>
+          </div>
+          {activeOrder.description && (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <span style={{ fontSize: '16px' }}>📋</span>
+              <span style={{ fontSize: '14px', color: 'var(--secondary-text)', whiteSpace: 'pre-line' }}>{activeOrder.description}</span>
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {activeOrder.paymentUrl && (
             <button
               className="btn-main"
@@ -775,10 +795,16 @@ function App() {
           )}
           <button
             className="btn-secondary"
-            onClick={() => WebApp.close()}
-            style={{ height: '50px', fontSize: '15px', background: 'transparent', border: '1px solid var(--border-color)' }}
+            onClick={() => {
+              setActiveOrder(null);
+              setStep(1);
+              setSelectedCategory(null);
+              setSelectedHelpType(null);
+              setSelectedSubTask(null);
+            }}
+            style={{ height: '50px', fontSize: '15px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '14px', cursor: 'pointer' }}
           >
-            Закрыть
+            Создать другой заказ
           </button>
         </div>
       </div>
