@@ -343,7 +343,7 @@ function App() {
         phone,
         address,
         description,
-        totalAmount: 1,
+        totalAmount: 500,
         lat: position[0],
         lng: position[1],
         telegramId: user?.id ? String(user.id) : undefined,
