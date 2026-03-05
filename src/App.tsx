@@ -851,7 +851,7 @@ function App() {
                 <button 
                   className="btn-main" 
                   style={{ width: '50px', height: '50px', borderRadius: '50%', padding: 0 }}
-                  onClick={() => spec?.username ? WebApp.openTelegramLink(`https://t.me/${spec.username}`) : WebApp.openTelegramLink(`https://t.me/city_of_masters_client_bot`)}
+                  onClick={() => spec?.username ? WebApp.openTelegramLink(`https://t.me/${spec.username}`) : WebApp.openTelegramLink(`tg://user?id=${spec?.telegramId}`)}
                 >
                   <MessageCircle size={24} />
                 </button>
@@ -872,7 +872,7 @@ function App() {
                 <button 
                   className="btn-main" 
                   style={{ flex: 2 }}
-                  onClick={() => spec?.username ? WebApp.openTelegramLink(`https://t.me/${spec.username}`) : WebApp.openTelegramLink(`https://t.me/city_of_masters_client_bot`)}
+                  onClick={() => spec?.username ? WebApp.openTelegramLink(`https://t.me/${spec.username}`) : WebApp.openTelegramLink(`tg://user?id=${spec?.telegramId}`)}
                 >
                   Написать мастеру
                 </button>
