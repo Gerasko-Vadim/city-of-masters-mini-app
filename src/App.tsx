@@ -90,7 +90,114 @@ function LocationMarker({ setPosition, setAddress, setIsBouncing }: {
   return null;
 }
 
+// ── Master registration mini-app ─────────────────────────────────────────────
+function MasterRegisterApp() {
+  const tgUser = WebApp.initDataUnsafe?.user;
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('+996 ');
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const isFullNameValid = fullName.trim().length >= 3;
+  const isPhoneValid = /^\+996 \d{3} \d{3} \d{3}$/.test(phone);
+
+  const formatPhone = (raw: string) => {
+    const digits = raw.replace(/\D/g, '');
+    const local = (digits.startsWith('996') ? digits.slice(3) : digits).slice(0, 9);
+    if (local.length === 0) return '+996 ';
+    if (local.length <= 3) return `+996 ${local}`;
+    if (local.length <= 6) return `+996 ${local.slice(0, 3)} ${local.slice(3)}`;
+    return `+996 ${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6)}`;
+  };
+
+  const handleSubmit = async () => {
+    if (!isFullNameValid || !isPhoneValid) return;
+    setLoading(true);
+    try {
+      await axios.patch(`${API_URL}/specialists/register-profile`, {
+        telegramId: String(tgUser?.id),
+        fullName: fullName.trim(),
+        phone,
+      });
+      setDone(true);
+      setTimeout(() => WebApp.close(), 1500);
+    } catch (err) {
+      console.error(err);
+      WebApp.showAlert('Ошибка при сохранении. Попробуйте снова.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (done) return (
+    <div className="step-container" style={{ textAlign: 'center', paddingTop: '80px' }}>
+      <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
+      <div className="title">Профиль заполнен!</div>
+      <div className="subtitle">Возвращаемся в бот...</div>
+    </div>
+  );
+
+  return (
+    <div className="app-container">
+      <div className="step-container">
+        <div style={{ marginBottom: '8px' }}>
+          <div style={{ fontSize: '36px', marginBottom: '12px' }}>👷</div>
+          <div className="title" style={{ fontSize: '22px' }}>Регистрация мастера</div>
+          <div className="subtitle">Нам нужны только ваше ФИО и номер телефона</div>
+        </div>
+
+        {/* Full name */}
+        <div className="form-group">
+          <div className="form-label">
+            ФИО <span className="field-required">*</span>
+          </div>
+          <input
+            className={`premium-input ${fullName && !isFullNameValid ? 'input-error' : fullName && isFullNameValid ? 'input-success' : ''}`}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Иванов Иван Иванович"
+            autoFocus
+          />
+          <div className="field-hint-msg">Это имя будет отображаться у клиента при назначении мастера</div>
+        </div>
+
+        {/* Phone */}
+        <div className="form-group">
+          <div className="form-label">
+            Номер телефона <span className="field-required">*</span>
+          </div>
+          <input
+            className={`premium-input ${phone.length > 6 && !isPhoneValid ? 'input-error' : isPhoneValid ? 'input-success' : ''}`}
+            value={phone}
+            inputMode="tel"
+            onChange={(e) => setPhone(formatPhone(e.target.value))}
+            placeholder="+996 555 123 456"
+          />
+          <div className="field-hint-msg">Формат: +996 555 123 456</div>
+        </div>
+      </div>
+
+      <div className="footer-btn-container">
+        <button
+          className="btn-main"
+          onClick={handleSubmit}
+          disabled={loading || !isFullNameValid || !isPhoneValid}
+        >
+          {loading
+            ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                <span className="btn-spinner" /> Сохраняем...
+              </span>
+            : 'Сохранить и продолжить'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
+  const isMasterMode = new URLSearchParams(window.location.search).get('mode') === 'master';
+  if (isMasterMode) return <MasterRegisterApp />;
+
   const [step, setStep] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedHelpType, setSelectedHelpType] = useState<TaskOption | null>(null);
