@@ -36,7 +36,8 @@ body {
 }
 
 .app-container {
-  height: 100vh;
+  height: 100dvh;
+  height: var(--tg-viewport-stable-height, 100dvh);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -408,6 +409,16 @@ body {
 @keyframes ripple-expand {
   0%   { transform: scale(1);   opacity: 0.7; }
   100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes pulseRing {
+  0%   { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
+}
+
+@keyframes livePulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(74,222,128,0.3); }
+  50%       { box-shadow: 0 0 0 6px rgba(74,222,128,0.1); }
 }
 
 /* Rotating tips */

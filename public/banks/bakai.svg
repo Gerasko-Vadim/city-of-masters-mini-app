@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="22" fill="#f0f2f5"/>
+  <!-- Blue B left top -->
+  <path d="M18 16 L18 46 Q36 46 36 31 Q36 16 18 16 Z" fill="#1B3A8C"/>
+  <path d="M18 31 Q36 31 36 31" stroke="#1B3A8C" stroke-width="2" fill="none"/>
+  <!-- Blue B left bottom -->
+  <path d="M18 46 L18 78 Q38 78 38 62 Q38 46 18 46 Z" fill="#1B3A8C"/>
+  <!-- Red B right top -->
+  <path d="M50 16 L50 46 Q68 46 68 31 Q68 16 50 16 Z" fill="#C0202A"/>
+  <!-- Red B right bottom -->
+  <path d="M50 46 L50 78 Q70 78 70 62 Q70 46 50 46 Z" fill="#C0202A"/>
+</svg>

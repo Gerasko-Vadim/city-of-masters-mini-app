@@ -98,6 +98,146 @@ export const SERVICES_DATA: Category[] = [
       },
     ],
   },
+  {
+    id: 'handyman',
+    label: 'Мелкосрочные работы',
+    icon: '🔩',
+    description: 'Сверление, полки, карнизы, мебель',
+    questions: [
+      {
+        id: 'help_type',
+        text: 'Что нужно сделать?',
+        options: [
+          { id: 'drill',         label: 'Просверлить отверстия',          icon: '🔩', priceRange: '200–500 сом' },
+          { id: 'shelf',         label: 'Повесить полку / карниз',         icon: '📐', priceRange: '300–700 сом' },
+          { id: 'curtain_rod',   label: 'Установить карниз для штор',      icon: '🪟', priceRange: '400–800 сом' },
+          { id: 'tv_mount',      label: 'Повесить телевизор',              icon: '📺', priceRange: '600–1 200 сом' },
+          { id: 'picture',       label: 'Повесить картины / зеркала',      icon: '🖼', priceRange: '200–400 сом' },
+          { id: 'hanger',        label: 'Установить вешалку / крючки',     icon: '🧥', priceRange: '200–400 сом' },
+          { id: 'furniture_fix', label: 'Починить мебель (петли, ручки)',  icon: '🪑', priceRange: '300–600 сом' },
+          { id: 'other_handyman',label: 'Другое (описать)',                icon: '📝' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'furniture',
+    label: 'Сборка мебели',
+    icon: '🪑',
+    description: 'IKEA, корпусная, разборка',
+    questions: [
+      {
+        id: 'help_type',
+        text: 'Что нужно сделать?',
+        options: [
+          { id: 'wardrobe',       label: 'Шкаф',                  icon: '🚪', priceRange: '1 000–3 000 сом' },
+          { id: 'bed',            label: 'Кровать',                icon: '🛏', priceRange: '800–2 000 сом' },
+          { id: 'kitchen',        label: 'Кухонный гарнитур',      icon: '🍳', priceRange: '2 000–5 000 сом' },
+          { id: 'table',          label: 'Стол / стулья',          icon: '🪑', priceRange: '400–1 000 сом' },
+          { id: 'sofa',           label: 'Диван / кресло',         icon: '🛋', priceRange: '600–1 500 сом' },
+          { id: 'disassemble',    label: 'Разобрать мебель',       icon: '🔧', priceRange: '500–1 500 сом' },
+          { id: 'other_furniture',label: 'Другое (описать)',       icon: '📝' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cleaning',
+    label: 'Уборка',
+    icon: '🧹',
+    description: 'Генеральная, после ремонта, окна',
+    questions: [
+      {
+        id: 'help_type',
+        text: 'Какая уборка нужна?',
+        options: [
+          { id: 'general',        label: 'Генеральная уборка',         icon: '🧹', priceRange: '2 000–5 000 сом' },
+          { id: 'after_repair',   label: 'После ремонта',              icon: '🏗️', priceRange: '3 000–8 000 сом' },
+          { id: 'windows',        label: 'Мытьё окон',                 icon: '🪟', priceRange: '150–300 сом/окно' },
+          { id: 'regular',        label: 'Поддерживающая уборка',      icon: '✨', priceRange: '1 000–2 500 сом' },
+          { id: 'carpet',         label: 'Чистка ковров',              icon: '🧺', priceRange: '300–800 сом/м²' },
+          { id: 'other_cleaning', label: 'Другое (описать)',           icon: '📝' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'appliance',
+    label: 'Ремонт техники',
+    icon: '🔌',
+    description: 'Бытовая и климатическая техника',
+    questions: [
+      {
+        id: 'help_type',
+        text: 'Что нужно отремонтировать?',
+        options: [
+          { id: 'washing',        label: 'Стиральная машина',         icon: '🫧', priceRange: 'от 1 000 сом' },
+          { id: 'fridge',         label: 'Холодильник',               icon: '🧊', priceRange: 'от 1 500 сом' },
+          { id: 'ac',             label: 'Кондиционер',               icon: '❄️', priceRange: 'от 1 200 сом' },
+          { id: 'dishwasher',     label: 'Посудомоечная машина',      icon: '🍽', priceRange: 'от 1 000 сом' },
+          { id: 'microwave',      label: 'Микроволновка / духовка',   icon: '📦', priceRange: 'от 600 сом' },
+          { id: 'other_appliance',label: 'Другое (описать)',          icon: '📝' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'painting',
+    label: 'Покраска и отделка',
+    icon: '🎨',
+    description: 'Стены, потолки, поклейка обоев',
+    questions: [
+      {
+        id: 'help_type',
+        text: 'Что нужно сделать?',
+        options: [
+          { id: 'walls',         label: 'Покрасить стены',           icon: '🖌️', priceRange: 'от 150 сом/м²' },
+          { id: 'ceiling',       label: 'Покрасить потолок',         icon: '🎨', priceRange: 'от 150 сом/м²' },
+          { id: 'wallpaper',     label: 'Поклеить обои',             icon: '🧻', priceRange: 'от 200 сом/м²' },
+          { id: 'putty',         label: 'Шпаклёвка',                icon: '🪣', priceRange: 'от 120 сом/м²' },
+          { id: 'other_painting',label: 'Другое (описать)',          icon: '📝' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'doors',
+    label: 'Двери, замки, окна',
+    icon: '🚪',
+    description: 'Установка, ремонт, замена',
+    questions: [
+      {
+        id: 'help_type',
+        text: 'Что нужно сделать?',
+        options: [
+          { id: 'lock_replace',  label: 'Заменить замок',            icon: '🔐', priceRange: '500–1 200 сом' },
+          { id: 'lock_open',     label: 'Вскрыть замок',             icon: '🗝', priceRange: '800–2 000 сом' },
+          { id: 'door_install',  label: 'Установить дверь',          icon: '🚪', priceRange: '2 000–5 000 сом' },
+          { id: 'door_adjust',   label: 'Отрегулировать дверь',      icon: '🔧', priceRange: '400–800 сом' },
+          { id: 'window_repair', label: 'Ремонт окна / фурнитуры',   icon: '🪟', priceRange: '600–1 500 сом' },
+          { id: 'other_doors',   label: 'Другое (описать)',          icon: '📝' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'movers',
+    label: 'Грузчики',
+    icon: '📦',
+    description: 'Переезд, подъём, вынос',
+    questions: [
+      {
+        id: 'help_type',
+        text: 'Что нужно сделать?',
+        options: [
+          { id: 'move',           label: 'Переезд квартиры',          icon: '🏠', priceRange: 'от 3 000 сом' },
+          { id: 'lift',           label: 'Подъём / спуск мебели',     icon: '📦', priceRange: '500–1 500 сом' },
+          { id: 'removal',        label: 'Вынос мусора / хлама',      icon: '🗑', priceRange: '800–2 000 сом' },
+          { id: 'other_movers',   label: 'Другое (описать)',           icon: '📝' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const PROPERTY_TYPES = [

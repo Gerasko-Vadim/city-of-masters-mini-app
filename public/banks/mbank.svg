@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 60">
+  <!-- Red left block -->
+  <rect x="0" y="0" width="36" height="60" fill="#E8170A"/>
+  <!-- Black thin divider -->
+  <rect x="36" y="0" width="3" height="60" fill="#111"/>
+  <!-- Orange middle block -->
+  <rect x="39" y="0" width="36" height="60" fill="#F5A800"/>
+  <!-- Red thin stripe -->
+  <rect x="75" y="0" width="4" height="60" fill="#E8170A"/>
+  <!-- Blue thin stripe -->
+  <rect x="79" y="0" width="4" height="60" fill="#1565C0"/>
+  <!-- Green right block -->
+  <rect x="83" y="0" width="37" height="60" fill="#2E7D32"/>
+  <!-- mBank text -->
+  <text x="60" y="40" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="white" text-anchor="middle">mBank</text>
+</svg>

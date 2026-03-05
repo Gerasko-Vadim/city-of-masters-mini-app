@@ -28,6 +28,8 @@ interface Order {
   address: string;
   lat: number;
   lng: number;
+  description?: string;
+  paymentUrl?: string;
   assignedSpecialist?: {
     telegramId: string;
     name: string;
@@ -120,12 +122,13 @@ function App() {
   };
   
   const [loading, setLoading] = useState(false);
-  const [orderCreated, setOrderCreated] = useState(false);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
+  const [nearbyMasters, setNearbyMasters] = useState(() => Math.floor(Math.random() * 4) + 3); // 3–6
   const [isBouncing, setIsBouncing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [initialLoading, setInitialLoading] = useState(true);
   const socketRef = useRef<Socket | null>(null);
+  const stepContainerRef = useRef<HTMLDivElement>(null);
 
   const SkeletonLoader = () => (
     <div className="skeleton-container" style={{ padding: '24px' }}>
@@ -187,42 +190,83 @@ function App() {
     }
   }, []); // Only on mount
 
-  useEffect(() => {
-    if (!activeOrder) return;
+  // Sync order status from server — called on visibility change and socket reconnect
+  const syncOrderStatus = async (orderId: number) => {
+    try {
+      const res = await axios.get(`${API_URL}/payment/order/${orderId}/status`);
+      const serverOrder = res.data;
+      setActiveOrder((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: serverOrder.status,
+          assignedSpecialist: serverOrder.assignedSpecialist ?? prev.assignedSpecialist,
+        };
+      });
+    } catch (e) {
+      console.warn('Failed to sync order status', e);
+    }
+  };
 
-    const socket = io(API_URL, { transports: ['websocket', 'polling'] });
+  // Connect socket once when order is created, keep alive until order is gone
+  useEffect(() => {
+    if (!activeOrder?.id) return;
+    const orderId = activeOrder.id;
+
+    const socket = io(API_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+    });
     socketRef.current = socket;
 
-    socket.on('connect', () => {
-      console.log('Connected to socket');
-    });
-
-    socket.on('orderUpdate', (updatedOrder: Order) => {
-      if (updatedOrder.id === activeOrder.id) {
-        setActiveOrder((prev) => ({ ...prev, ...updatedOrder }));
-      }
-    });
-
-    socket.on('specialistUpdate', (updatedSpec: any) => {
-      if (activeOrder?.assignedSpecialist?.telegramId === String(updatedSpec.telegramId)) {
+    socket.on('orderUpdate', (updatedOrder: any) => {
+      if (updatedOrder.id === orderId) {
         setActiveOrder((prev) => {
           if (!prev) return prev;
           return {
             ...prev,
-            assignedSpecialist: {
-              ...prev.assignedSpecialist!,
-              lat: updatedSpec.lat,
-              lng: updatedSpec.lng,
-            },
+            status: updatedOrder.status,
+            assignedSpecialist: updatedOrder.assignedSpecialist ?? prev.assignedSpecialist,
           };
         });
       }
     });
 
+    socket.on('specialistUpdate', (updatedSpec: any) => {
+      setActiveOrder((prev) => {
+        if (!prev?.assignedSpecialist) return prev;
+        if (String(updatedSpec.telegramId) !== prev.assignedSpecialist.telegramId) return prev;
+        return {
+          ...prev,
+          assignedSpecialist: {
+            ...prev.assignedSpecialist,
+            lat: updatedSpec.lat,
+            lng: updatedSpec.lng,
+          },
+        };
+      });
+    });
+
+    // On reconnect — sync status in case update was missed while disconnected
+    socket.on('connect', () => {
+      syncOrderStatus(orderId);
+    });
+
     return () => {
       socket.disconnect();
     };
-  }, [activeOrder?.id, activeOrder?.assignedSpecialist?.telegramId]);
+  }, [activeOrder?.id]); // only reconnect if order id changes
+
+  // Poll backend every 3s while order is NEW (payment pending)
+  useEffect(() => {
+    if (!activeOrder?.id || activeOrder.status !== 'NEW') return;
+    const orderId = activeOrder.id;
+
+    const interval = setInterval(() => syncOrderStatus(orderId), 3000);
+    return () => clearInterval(interval);
+  }, [activeOrder?.id, activeOrder?.status]);
 
   useEffect(() => {
     try {
@@ -237,6 +281,10 @@ function App() {
       console.warn('Telegram SDK not available');
     }
   }, []);
+
+  useEffect(() => {
+    stepContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+  }, [step]);
 
   const handleSearch = async () => {
     if (!searchQuery) return;
@@ -273,22 +321,24 @@ function App() {
     }
   };
 
-  const createOrder = async () => {
+  const handlePayment = async () => {
     setLoading(true);
     const user = WebApp.initDataUnsafe?.user;
-    
+
+    const priceRange = selectedSubTask?.priceRange ?? selectedHelpType?.priceRange ?? '';
+    const taskLabel = [selectedHelpType?.label, selectedSubTask?.label].filter(Boolean).join(' — ');
+
     const descriptionLines = [
-      `Категория: ${selectedCategory?.label}`,
-      `Тип помощи: ${selectedHelpType?.label}`,
-      selectedSubTask ? `Задача: ${selectedSubTask.label}` : '',
+      taskLabel,
       `Объект: ${propertyType}`,
-      problemDescription ? `Описание: ${problemDescription}` : ''
+      priceRange ? `Стоимость: ${priceRange}` : '',
+      problemDescription ? `Описание: ${problemDescription}` : '',
     ].filter(Boolean);
 
     const description = descriptionLines.join('\n');
 
     try {
-      await axios.post(`${API_URL}/order`, {
+      const res = await axios.post(`${API_URL}/payment/initiate`, {
         customerName: user?.first_name || 'Клиент',
         phone,
         address,
@@ -296,9 +346,19 @@ function App() {
         totalAmount: 500,
         lat: position[0],
         lng: position[1],
-        telegramId: user?.id ? String(user.id) : undefined
+        telegramId: user?.id ? String(user.id) : undefined,
+        category: selectedCategory?.label,
       });
-      setOrderCreated(true);
+      WebApp.openLink(res.data.paymentUrl);
+      setActiveOrder({
+        id: res.data.orderId,
+        status: 'NEW',
+        address,
+        lat: position[0],
+        lng: position[1],
+        description,
+        paymentUrl: res.data.paymentUrl,
+      });
     } catch (err) {
       console.error(err);
       WebApp.showAlert('Ошибка при создании заказа. Попробуйте снова.');
@@ -540,38 +600,126 @@ function App() {
     </div>
   );
 
+  const BANKS = [
+    { name: 'Мбанк',     img: '/banks/mbank.svg'  },
+    { name: 'О!Деньги',  img: '/banks/odengi.svg' },
+    { name: 'BakaiBank', img: '/banks/bakai.svg'  },
+    { name: 'Optima',    img: '/banks/optima.svg' },
+    { name: 'РСК Банк',  img: '/banks/rsk.svg'    },
+  ];
+
+  // Occasionally nudge nearby masters count ±1 for live feel
+  useEffect(() => {
+    const t = setInterval(() => {
+      setNearbyMasters(n => {
+        const delta = Math.random() < 0.5 ? 1 : -1;
+        return Math.min(8, Math.max(2, n + delta));
+      });
+    }, 7000 + Math.random() * 5000);
+    return () => clearInterval(t);
+  }, []);
+
   const renderStep3 = () => (
-    <div style={{ animation: 'fadeIn 0.3s ease' }}>
-      <div className="title">Оплата и подтверждение</div>
-      <div className="subtitle">Отсканируйте QR-код для оплаты комиссии</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-      <div className="card-item" style={{ flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '24px', padding: '24px' }}>
-        <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', boxShadow: 'var(--shadow-md)' }}>
-          {/* QR Code Placeholder */}
-          <img 
-            src="/mbusiness_qr.jpg" 
-            alt="Payment QR" 
-            style={{ width: '100%', height: 'auto', maxHeight: '300px', display: 'block', objectFit: 'contain', borderRadius: '8px' }}
-            onError={(e) => {
-              e.currentTarget.src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=CityOfMastersPayment";
-            }}
-          />
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--primary-color)' }}>500 сом</div>
-          <div style={{ fontSize: '13px', color: 'var(--secondary-text)', marginTop: '4px' }}>Фиксированная комиссия</div>
+      {/* ── Live masters counter (hero) ──────────────────── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+        borderRadius: '20px',
+        padding: '22px 20px',
+        textAlign: 'center',
+        color: '#fff',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* pulse rings */}
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', animation: 'pulseRing 3s ease-out infinite' }} />
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.07)', animation: 'pulseRing 3s ease-out 1s infinite' }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '6px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', display: 'inline-block', boxShadow: '0 0 0 3px rgba(74,222,128,0.3)', animation: 'livePulse 1.5s ease-in-out infinite' }} />
+            <span style={{ fontSize: '12px', fontWeight: 600, opacity: 0.9, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Прямо сейчас</span>
+          </div>
+
+          <div style={{ fontSize: '72px', fontWeight: '900', lineHeight: 1, letterSpacing: '-2px' }}>
+            {nearbyMasters}
+          </div>
+          <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>
+            мастеров рядом с вами
+          </div>
+          <div style={{ fontSize: '13px', opacity: 0.8, marginTop: '6px' }}>
+            📍 Готовы выехать в течение 15 минут
+          </div>
         </div>
       </div>
 
-      <div className="alert-box" style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
-        <p style={{ fontSize: '13px', margin: 0, lineHeight: 1.5 }}>
-          <strong>Инструкция:</strong><br/>
-          1. Отсканируйте QR и оплатите 500 сом<br/>
-          2. Сделайте скриншот чека<br/>
-          3. Нажмите кнопку "Я оплатил" ниже<br/>
-          4. Отправьте скриншот в чат нашего бота
-        </p>
+      {/* ── Price card ───────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '16px', padding: '14px 12px', textAlign: 'center' }}>
+          <div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--primary-text)', lineHeight: 1 }}>500 сом</div>
+          <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '4px' }}>вызов мастера</div>
+        </div>
+        <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '16px', padding: '14px 12px', textAlign: 'center' }}>
+          <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--primary-text)', lineHeight: 1 }}>~15 мин</div>
+          <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '4px' }}>среднее время приезда</div>
+        </div>
+        <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '16px', padding: '14px 12px', textAlign: 'center' }}>
+          <div style={{ fontSize: '24px', fontWeight: '900', color: '#22c55e', lineHeight: 1 }}>100%</div>
+          <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '4px' }}>гарантия</div>
+        </div>
       </div>
+
+      {/* ── How it works ─────────────────────────────────── */}
+      <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>Как это работает</div>
+        {[
+          { icon: '💳', title: 'Оплати вызов — 500 сом', sub: 'Без скрытых платежей' },
+          { icon: '⚡', title: 'Мастер выезжает', sub: 'Ближайший свободный специалист' },
+          { icon: '✅', title: 'Работа выполнена', sub: 'Платите мастеру только за саму работу' },
+        ].map((s, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-color)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>{s.icon}</div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--primary-text)' }}>{s.title}</div>
+              <div style={{ fontSize: '12px', color: 'var(--secondary-text)' }}>{s.sub}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Banks ────────────────────────────────────────── */}
+      <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '14px 16px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
+          Оплата с любого банка Кыргызстана
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+          {BANKS.map(b => (
+            <div key={b.name} title={b.name} style={{ height: '44px', width: b.name === 'Мбанк' ? '88px' : '44px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.12)' }}>
+              <img src={b.img} alt={b.name} style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Trust badges ─────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '14px', padding: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '22px' }}>💬</span>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary-text)' }}>Поддержка 24/7</div>
+            <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '2px' }}>Оператор всегда на связи</div>
+          </div>
+        </div>
+        <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '14px', padding: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '22px' }}>🔄</span>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary-text)' }}>Возврат денег</div>
+            <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '2px' }}>Если мастер не приехал</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 
@@ -746,6 +894,61 @@ function App() {
   if (initialLoading) return <SkeletonLoader />;
 
   if (activeOrder) {
+    if (activeOrder.status === 'NEW') return (
+      <div className="step-container" style={{ paddingBottom: '40px' }}>
+        <div style={{ textAlign: 'center', paddingTop: '32px', marginBottom: '24px' }}>
+          <div style={{ fontSize: '52px', marginBottom: '16px' }}>💳</div>
+          <div className="title" style={{ fontSize: '22px', marginBottom: '8px' }}>Ожидаем оплату</div>
+          <p className="subtitle" style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--secondary-text)', marginBottom: '16px' }}>
+            Завершите оплату — поиск мастера начнётся <strong>автоматически</strong>
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--secondary-text)', fontSize: '13px' }}>
+            <span className="step-spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }} />
+            Ожидаем подтверждения...
+          </div>
+        </div>
+
+        {/* Order preview */}
+        <div className="card-item" style={{ flexDirection: 'column', gap: '10px', marginBottom: '16px', padding: '16px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ваш заказ #{activeOrder.id}</div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '16px' }}>📍</span>
+            <span style={{ fontSize: '14px', color: 'var(--primary-text)' }}>{activeOrder.address}</span>
+          </div>
+          {activeOrder.description && (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <span style={{ fontSize: '16px' }}>📋</span>
+              <span style={{ fontSize: '14px', color: 'var(--secondary-text)', whiteSpace: 'pre-line' }}>{activeOrder.description}</span>
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {activeOrder.paymentUrl && (
+            <button
+              className="btn-main"
+              onClick={() => WebApp.openLink(activeOrder.paymentUrl!)}
+              style={{ height: '54px', fontSize: '16px' }}
+            >
+              💳 Открыть страницу оплаты
+            </button>
+          )}
+          <button
+            className="btn-secondary"
+            onClick={() => {
+              setActiveOrder(null);
+              setStep(1);
+              setSelectedCategory(null);
+              setSelectedHelpType(null);
+              setSelectedSubTask(null);
+            }}
+            style={{ height: '50px', fontSize: '15px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '14px', cursor: 'pointer' }}
+          >
+            Создать другой заказ
+          </button>
+        </div>
+      </div>
+    );
     if (activeOrder.status === 'PAID') return renderRadarView();
     if (activeOrder.status === 'IN_PROGRESS') return renderTrackingView();
     if (activeOrder.status === 'COMPLETED') {
@@ -777,7 +980,6 @@ function App() {
               setSelectedCategory(null);
               setSelectedHelpType(null);
               setSelectedSubTask(null);
-              setOrderCreated(false);
             }}
             style={{ height: '54px', fontSize: '16px' }}
           >
@@ -788,56 +990,6 @@ function App() {
     }
   }
 
-  if (orderCreated) {
-    return (
-      <div className="step-container" style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '40px' }}>
-        <div style={{ 
-          width: '100px', 
-          height: '100px', 
-          background: 'rgba(76, 175, 80, 0.1)', 
-          borderRadius: '50%', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          margin: '0 auto 24px' 
-        }}>
-          <CheckCircle size={60} color="var(--success-color)" />
-        </div>
-        <div className="title" style={{ fontSize: '24px', marginBottom: '12px' }}>Заявка создана!</div>
-        <p className="subtitle" style={{ fontSize: '15px', lineHeight: '1.6', marginBottom: '32px', color: 'var(--secondary-text)' }}>
-          Ваша заявка ожидает подтверждения оплаты. <br/>
-          <strong>Отправьте скриншот оплаты</strong> в чат бота, и мы сразу начнем поиск мастера.
-        </p>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <button 
-            className="btn-main" 
-            onClick={() => WebApp.openTelegramLink('https://t.me/city_of_masters_client_bot')}
-            style={{ 
-              height: '54px', 
-              fontSize: '16px', 
-              boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px'
-            }}
-          >
-            <MessageCircle size={22} />
-            Перейти в чат бота
-          </button>
-          
-          <button 
-            className="btn-secondary" 
-            onClick={() => WebApp.close()}
-            style={{ height: '50px', fontSize: '15px', background: 'transparent', border: '1px solid var(--border-color)' }}
-          >
-            Закрыть
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="app-container">
@@ -854,7 +1006,7 @@ function App() {
         </div>
       )}
 
-      <div className="step-container">
+      <div className="step-container" ref={stepContainerRef}>
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
         {step === 3 && renderStep3()}
@@ -878,12 +1030,12 @@ function App() {
           </button>
         )}
         {step === 3 && (
-          <button className="btn-main" onClick={createOrder} disabled={loading}>
+          <button className="btn-main" onClick={handlePayment} disabled={loading}>
             {loading
               ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                   <span className="btn-spinner" /> Создаём заказ...
                 </span>
-              : 'Я оплатил — создать заказ'
+              : '💳 Перейти к оплате'
             }
           </button>
         )}
