@@ -195,7 +195,9 @@ function MasterRegisterApp() {
 }
 
 function App() {
-  const isMasterMode = new URLSearchParams(window.location.search).get('mode') === 'master';
+  const isMasterMode =
+    window.location.hash.includes('master') ||
+    new URLSearchParams(window.location.search).get('mode') === 'master';
   if (isMasterMode) return <MasterRegisterApp />;
 
   const [step, setStep] = useState(1);
