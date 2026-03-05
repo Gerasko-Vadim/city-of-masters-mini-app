@@ -787,6 +787,14 @@ function App() {
     </div>
   );
 
+  const getMasterChatUrl = (spec: NonNullable<Order['assignedSpecialist']>, orderId: number, address: string) => {
+    const text = encodeURIComponent(
+      `Здравствуйте! Я клиент сервиса Город Мастеров 👋\n\nЗаказ #${orderId}\n📍 Адрес: ${address}\n\nЖду вас!`
+    );
+    if (spec.username) return `https://t.me/${spec.username}?text=${text}`;
+    return `tg://user?id=${spec.telegramId}`;
+  };
+
   const renderTrackingView = () => {
     if (!activeOrder) return null;
     const spec = activeOrder.assignedSpecialist;
@@ -851,7 +859,7 @@ function App() {
                 <button 
                   className="btn-main" 
                   style={{ width: '50px', height: '50px', borderRadius: '50%', padding: 0 }}
-                  onClick={() => spec?.username ? WebApp.openTelegramLink(`https://t.me/${spec.username}`) : WebApp.openTelegramLink(`tg://user?id=${spec?.telegramId}`)}
+                  onClick={() => spec && WebApp.openTelegramLink(getMasterChatUrl(spec, activeOrder.id, activeOrder.address))}
                 >
                   <MessageCircle size={24} />
                 </button>
@@ -872,7 +880,7 @@ function App() {
                 <button 
                   className="btn-main" 
                   style={{ flex: 2 }}
-                  onClick={() => spec?.username ? WebApp.openTelegramLink(`https://t.me/${spec.username}`) : WebApp.openTelegramLink(`tg://user?id=${spec?.telegramId}`)}
+                  onClick={() => spec && WebApp.openTelegramLink(getMasterChatUrl(spec, activeOrder.id, activeOrder.address))}
                 >
                   Написать мастеру
                 </button>
