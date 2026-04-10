@@ -343,7 +343,7 @@ function App() {
         phone,
         address,
         description,
-        totalAmount: 500,
+        totalAmount: 200,
         lat: position[0],
         lng: position[1],
         telegramId: user?.id ? String(user.id) : undefined,
@@ -657,7 +657,7 @@ function App() {
       {/* ── Price card ───────────────────────────────────── */}
       <div style={{ display: 'flex', gap: '10px' }}>
         <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '16px', padding: '14px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--primary-text)', lineHeight: 1 }}>500 сом</div>
+          <div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--primary-text)', lineHeight: 1 }}>200 сом</div>
           <div style={{ fontSize: '11px', color: 'var(--secondary-text)', marginTop: '4px' }}>вызов мастера</div>
         </div>
         <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '16px', padding: '14px 12px', textAlign: 'center' }}>
@@ -674,7 +674,7 @@ function App() {
       <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--secondary-text)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>Как это работает</div>
         {[
-          { icon: '💳', title: 'Оплати вызов — 500 сом', sub: 'Без скрытых платежей' },
+          { icon: '💳', title: 'Оплати вызов — 200 сом', sub: 'Без скрытых платежей' },
           { icon: '⚡', title: 'Мастер выезжает', sub: 'Ближайший свободный специалист' },
           { icon: '✅', title: 'Работа выполнена', sub: 'Платите мастеру только за саму работу' },
         ].map((s, i) => (
@@ -872,7 +872,7 @@ function App() {
                 </div>
                 <div style={{ padding: '12px', background: '#f8f8f8', borderRadius: '12px' }}>
                   <div style={{ fontSize: '11px', color: 'var(--secondary-text)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>Стоимость</div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#212121' }}>Оплачено: 500 сом</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#212121' }}>Оплачено: 200 сом</div>
                 </div>
               </div>
 
